@@ -2,9 +2,10 @@ package com.masrepus.fifty50.car;
 
 import com.pi4j.io.gpio.*;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 /**
  * Created by samuel on 30.01.15.
@@ -18,8 +19,12 @@ public class Main {
     private GpioPinDigitalOutput forward_fast, backward_fast, left_fast, right_fast;
     private GpioPinDigitalOutput forward_slow, backward_slow, left_slow, right_slow;
 
+    private ServerSocket serverSocket;
+    private boolean finish = false;
+
     public static void main(String[] args) {
-        Main main = new Main();
+
+        Main main = new Main(Integer.valueOf(args[0]));
 
         System.out.println("----Fifty50 Racing© Raspberry Pi controller gestartet---- \n \n");
         System.out.println("Befehle: \n" +
@@ -44,7 +49,7 @@ public class Main {
         BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
         String command = "";
 
-        while(true) {
+        while(!main.finish()) {
             try {
                 command = console.readLine();
             } catch (IOException e) {
@@ -75,7 +80,7 @@ public class Main {
         }
     }
 
-    public Main() {
+    public Main(int port) {
         gpio = GpioFactory.getInstance();
 
         //provision gpio pins 0 to 3 as output pins for fast/strong commands
@@ -89,9 +94,18 @@ public class Main {
         backward_slow = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_05, "Backward slow", PinState.LOW);
         left_slow = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_06, "Left slow", PinState.LOW);
         right_slow = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_01, "Right slow", PinState.LOW);
+
+        try {
+            serverSocket = new ServerSocket(port);
+            serverSocket.setSoTimeout(10000);
+        } catch (IOException e) {
+            System.out.println("Fehler beim erstellen des Server-Sockets");
+        }
     }
 
-
+    public boolean finish() {
+        return finish;
+    }
 
     private void forward(Speed speed) {
         String intensity = "";
@@ -183,5 +197,70 @@ public class Main {
         left_slow.low();
         left_fast.low();
         System.out.println("Lenken beendet");
+    }
+
+    public void stop() {
+        System.exit(1);
+    }
+
+    public class Server extends Thread {
+
+        private ServerSocket serverSocket;
+        private Main main;
+
+        public Server(Main main, int port) throws IOException
+        {
+            serverSocket = new ServerSocket(port);
+            serverSocket.setSoTimeout(10000);
+            this.main = main;
+        }
+
+        public void run() {
+                try {
+                    System.out.println("Warte auf Client (Port " +
+                            serverSocket.getLocalPort() + ")");
+
+                    Socket client = serverSocket.accept();
+                    System.out.println("Verbunden mit "
+                            + client.getRemoteSocketAddress());
+
+                    BufferedReader in =
+                            new BufferedReader(new InputStreamReader(client.getInputStream()));
+                    DataOutputStream out =
+                            new DataOutputStream(client.getOutputStream());
+
+                    //wait for commands from the client
+                    String command = "";
+                    while (true) {
+                        command = in.readLine();
+
+                        //check if this is a legitimate command
+                        if (command.toUpperCase().contentEquals("W")) main.forward(Speed.SLOW);
+                        else if (command.toUpperCase().contentEquals("S")) main.backward(Speed.SLOW);
+                        else if (command.toUpperCase().contentEquals("A")) main.left(Speed.SLOW);
+                        else if (command.toUpperCase().contentEquals("D")) main.right(Speed.SLOW);
+
+                        else if (command.toUpperCase().contentEquals("I")) main.forward(Speed.FAST);
+                        else if (command.toUpperCase().contentEquals("K")) main.backward(Speed.FAST);
+                        else if (command.toUpperCase().contentEquals("J")) main.left(Speed.FAST);
+                        else if (command.toUpperCase().contentEquals("L")) main.right(Speed.FAST);
+
+                        else if (command.contentEquals("")) {
+                            main.brake();
+                            main.straight();
+                        }
+
+                        else if (command.toUpperCase().contentEquals("X")) {
+                            System.out.println("----Beende das Programm...----");
+                            finish = true;
+                            break;
+                        }
+                    }
+                } catch (SocketTimeoutException s) {
+                    System.out.println("Socket Timeout!");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+        }
     }
 }
