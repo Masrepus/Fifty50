@@ -1,7 +1,11 @@
 package com.masrepus.fifty50.computer;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.Socket;
+import java.net.URL;
 
 /**
  * Created by samuel on 02.02.15.
@@ -10,25 +14,34 @@ public class Main {
 
     public static enum Speed {SLOW, FAST}
 
-    private Socket client;
     private DataOutputStream out;
+    private GameWindow window;
+    private Socket client;
+    private OutputStream outToServer;
 
-    public Main(String serverName, int port) {
-        try {
-            System.out.println("Verbinde mit " + serverName + " am Port " + port + "...");
-            client = new Socket(serverName, port);
-            System.out.println("Verbunden mit " + client.getRemoteSocketAddress());
-
-            OutputStream outToServer = client.getOutputStream();
-            out = new DataOutputStream(outToServer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void attachWindow(GameWindow window) {
+        this.window = window;
     }
 
     public static void main(String[] args) {
 
-        Main main = new Main(args[0], Integer.parseInt(args[1]));
+        Main main = null;
+        try {
+            main = new Main();
+        } catch (Exception e) {
+            System.out.println("Parameter benötigt: Server adresse, Server port");
+            System.exit(1);
+        }
+
+        GameWindow window = new GameWindow();
+        window.init(main);
+        JFrame frame = new JFrame("GameWindow");
+        frame.setContentPane(window.panel1);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.setExtendedState(Frame.MAXIMIZED_BOTH);
+        frame.pack();
+        frame.setVisible(true);
+        main.attachWindow(window);
 
         System.out.println("----Fifty50 Racing© Fernsteuerung gestartet---- \n \n");
         System.out.println("Befehle: \n" +
@@ -47,7 +60,17 @@ public class Main {
                 " \n" +
                 "Bremsen: 'ENTER' \n \n" +
                 "Zum beenden 'X' drücken \n \n");
-        System.out.println("----Warte auf Befehle----");
+        System.out.println("----Warte auf Befehle---- \n");
+
+        //connect to the car
+        main.connectToServer(args[0], Integer.parseInt(args[1]));
+
+        try {
+            //create a mediaplayer for the live stream
+
+        } catch (Exception e) {
+            System.out.println("Fehler beim Abspielen des Streams! " + e.getClass());
+        }
 
         //start listening for console input
         BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
@@ -82,30 +105,35 @@ public class Main {
         }
     }
 
-    private void straight() {
+    public void connectToServer(String serverName, int port) {
+        new Connector(serverName, port).start();
+    }
+
+    public void straight() {
         brake();
     }
 
-    private void brake() {
+    public void brake() {
         try {
             out.writeUTF("");
+            window.changeCommandText("Bremsen");
         } catch (IOException e) {
             System.out.println("Fehler beim Senden des Befehls");
         }
     }
 
-    private void right(Speed speed) {
+    public void right(Speed speed) {
 
         String command;
 
         //select the command according to the speed
         switch (speed) {
 
-            case SLOW:
+            case FAST:
             default:
                 command = "L";
                 break;
-            case FAST:
+            case SLOW:
                 command = "D";
                 break;
         }
@@ -113,23 +141,24 @@ public class Main {
         try {
             //send the command to the car
             out.writeUTF(command);
+            window.changeCommandText("Befehl: " + command);
         } catch (IOException e) {
             System.out.println("Fehler beim Senden des Befehls " + command);
         }
     }
 
-    private void left(Speed speed) {
+    public void left(Speed speed) {
 
         String command;
 
         //select the command according to the speed
         switch (speed) {
 
-            case SLOW:
+            case FAST:
             default:
                 command = "J";
                 break;
-            case FAST:
+            case SLOW:
                 command = "A";
                 break;
         }
@@ -137,23 +166,24 @@ public class Main {
         try {
             //send the command to the car
             out.writeUTF(command);
+            window.changeCommandText("Befehl: " + command);
         } catch (IOException e) {
             System.out.println("Fehler beim Senden des Befehls " + command);
         }
     }
 
-    private void backward(Speed speed) {
+    public void backward(Speed speed) {
 
         String command;
 
         //select the command according to the speed
         switch (speed) {
 
-            case SLOW:
+            case FAST:
             default:
                 command = "K";
                 break;
-            case FAST:
+            case SLOW:
                 command = "S";
                 break;
         }
@@ -161,23 +191,24 @@ public class Main {
         try {
             //send the command to the car
             out.writeUTF(command);
+            window.changeCommandText("Befehl: " + command);
         } catch (IOException e) {
             System.out.println("Fehler beim Senden des Befehls " + command);
         }
     }
 
-    private void forward(Speed speed) {
+    public void forward(Speed speed) {
 
         String command;
 
         //select the command according to the speed
         switch (speed) {
 
-            case SLOW:
+            case FAST:
             default:
                 command = "I";
                 break;
-            case FAST:
+            case SLOW:
                 command = "W";
                 break;
         }
@@ -185,10 +216,45 @@ public class Main {
         try {
             //send the command to the car
             out.writeUTF(command);
+            window.changeCommandText("Befehl: " + command);
         } catch (IOException e) {
             System.out.println("Fehler beim Senden des Befehls " + command);
         }
     }
 
+    private class Connector extends Thread {
 
+        String serverName;
+        int port;
+
+        public Connector(String serverName, int port) {
+            this.serverName = serverName;
+            this.port = port;
+        }
+
+        @Override
+        public void run() {
+
+            //try to connect to the car; sleep and retry if connection fails
+            boolean connected = false;
+
+            while (!connected) {
+                try {
+                    System.out.println("Verbinde mit " + serverName + " am Port " + port + "...");
+                    client = new Socket(serverName, port);
+                    System.out.println("Verbunden mit " + client.getRemoteSocketAddress());
+
+                    outToServer = client.getOutputStream();
+                    out = new DataOutputStream(outToServer);
+                    connected = true;
+                } catch (IOException e) {
+                    System.out.println("Verbindung fehlgeschlagen, warte...");
+                    try {
+                        sleep(100);
+                    } catch (InterruptedException e1) {}
+                    connected = false;
+                }
+            }
+        }
+    }
 }
