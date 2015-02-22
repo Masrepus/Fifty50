@@ -24,18 +24,15 @@
  * limitations under the License.
  * #L%
  */
-import java.io.IOException;
 
 import com.pi4j.gpio.extension.pcf.PCF8574GpioProvider;
 import com.pi4j.gpio.extension.pcf.PCF8574Pin;
-import com.pi4j.io.gpio.GpioController;
-import com.pi4j.io.gpio.GpioFactory;
-import com.pi4j.io.gpio.GpioPinDigitalInput;
-import com.pi4j.io.gpio.GpioPinDigitalOutput;
-import com.pi4j.io.gpio.PinState;
+import com.pi4j.io.gpio.*;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 import com.pi4j.io.i2c.I2CBus;
+
+import java.io.IOException;
 
 /**
  * <p>

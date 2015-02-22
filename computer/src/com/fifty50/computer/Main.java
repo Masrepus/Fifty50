@@ -1,6 +1,10 @@
-package com.masrepus.fifty50.computer;
+package com.fifty50.computer;
+
+import com.charliemouse.cambozola.Viewer;
 
 import javax.swing.*;
+import java.applet.AppletContext;
+import java.applet.AppletStub;
 import java.awt.*;
 import java.io.*;
 import java.net.MalformedURLException;
@@ -39,8 +43,6 @@ public class Main {
         frame.setContentPane(window.panel1);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setExtendedState(Frame.MAXIMIZED_BOTH);
-        frame.pack();
-        frame.setVisible(true);
         main.attachWindow(window);
 
         System.out.println("----Fifty50 Racing© Fernsteuerung gestartet---- \n \n");
@@ -65,12 +67,58 @@ public class Main {
         //connect to the car
         main.connectToServer(args[0], Integer.parseInt(args[1]));
 
-        try {
-            //create a mediaplayer for the live stream
+        //create a new instance of the cambozola mjpg player applet for the live stream
+        final String url = "http://localhost:8080/?action=stream";
+        Viewer viewer = new Viewer();
+        AppletStub stub = new AppletStub() {
+            @Override
+            public boolean isActive() {
+                return true;
+            }
 
-        } catch (Exception e) {
-            System.out.println("Fehler beim Abspielen des Streams! " + e.getClass());
-        }
+            @Override
+            public URL getDocumentBase() {
+                URL base = null;
+                try {
+                    base = new URL("http://localhost:8080");
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+                return base;
+            }
+
+            @Override
+            public URL getCodeBase() {
+                URL base = null;
+                try {
+                    base = new URL("http://localhost:8080");
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+                return base;
+            }
+
+            @Override
+            public String getParameter(String name) {
+                if (name.contentEquals("url")) return url;
+                else return "";
+            }
+
+            @Override
+            public AppletContext getAppletContext() {
+                return null;
+            }
+
+            @Override
+            public void appletResize(int width, int height) {
+
+            }
+        };
+        viewer.setStub(stub);
+        frame.add(viewer);
+        frame.pack();
+        frame.setVisible(true);
+        viewer.init();
 
         //start listening for console input
         BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
@@ -251,7 +299,8 @@ public class Main {
                     System.out.println("Verbindung fehlgeschlagen, warte...");
                     try {
                         sleep(100);
-                    } catch (InterruptedException e1) {}
+                    } catch (InterruptedException e1) {
+                    }
                     connected = false;
                 }
             }

@@ -25,11 +25,8 @@
  * limitations under the License.
  * #L%
  */
-import com.pi4j.wiringpi.Gpio;
-import com.pi4j.wiringpi.GpioInterrupt;
-import com.pi4j.wiringpi.GpioInterruptListener;
-import com.pi4j.wiringpi.GpioInterruptEvent;
-import com.pi4j.wiringpi.GpioUtil;
+
+import com.pi4j.wiringpi.*;
 
 public class WiringPiGpioInterruptExample {
     

@@ -1,7 +1,6 @@
-package com.masrepus.fifty50.computer;
+package com.fifty50.computer;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
@@ -22,10 +21,6 @@ public class GameWindow implements KeyListener {
         panel1.setFocusable(true);
         panel1.requestFocus();
         panel1.addKeyListener(this);
-    }
-
-    public JPanel getPanel() {
-        return panel1;
     }
 
     @Override

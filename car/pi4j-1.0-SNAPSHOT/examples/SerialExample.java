@@ -29,13 +29,9 @@
  */
 
 
-import java.util.Date;
+import com.pi4j.io.serial.*;
 
-import com.pi4j.io.serial.Serial;
-import com.pi4j.io.serial.SerialDataEvent;
-import com.pi4j.io.serial.SerialDataListener;
-import com.pi4j.io.serial.SerialFactory;
-import com.pi4j.io.serial.SerialPortException;
+import java.util.Date;
 
 /**
  * This example code demonstrates how to perform serial communications using the Raspberry Pi.

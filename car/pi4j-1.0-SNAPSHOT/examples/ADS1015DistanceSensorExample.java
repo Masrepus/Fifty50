@@ -28,9 +28,6 @@
  */
 
 
-import java.io.IOException;
-import java.text.DecimalFormat;
-
 import com.pi4j.component.sensor.DistanceSensorChangeEvent;
 import com.pi4j.component.sensor.DistanceSensorListener;
 import com.pi4j.component.sensor.impl.DistanceSensorComponent;
@@ -41,6 +38,9 @@ import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinAnalogInput;
 import com.pi4j.io.i2c.I2CBus;
+
+import java.io.IOException;
+import java.text.DecimalFormat;
 
 /**
  * <p>

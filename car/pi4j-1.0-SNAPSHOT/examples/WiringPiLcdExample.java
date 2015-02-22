@@ -25,12 +25,13 @@
  * limitations under the License.
  * #L%
  */
-import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import com.pi4j.wiringpi.Gpio;
 import com.pi4j.wiringpi.Lcd;
+
+import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class WiringPiLcdExample {
 

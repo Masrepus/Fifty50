@@ -24,9 +24,6 @@
  * limitations under the License.
  * #L%
  */
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.Scanner;
 
 import com.pi4j.component.servo.Servo;
 import com.pi4j.component.servo.impl.GenericServo;
@@ -39,6 +36,10 @@ import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinPwmOutput;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CFactory;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.Scanner;
 
 /**
  * Simple servo tester application demonstrating Pi4J's Servo component.

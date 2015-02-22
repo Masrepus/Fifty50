@@ -24,8 +24,6 @@
  * limitations under the License.
  * #L%
  */
-import java.math.BigDecimal;
-import java.util.Scanner;
 
 import com.pi4j.gpio.extension.pca.PCA9685GpioProvider;
 import com.pi4j.gpio.extension.pca.PCA9685Pin;
@@ -35,6 +33,9 @@ import com.pi4j.io.gpio.GpioPinPwmOutput;
 import com.pi4j.io.gpio.Pin;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CFactory;
+
+import java.math.BigDecimal;
+import java.util.Scanner;
 
 /**
  * <p>
