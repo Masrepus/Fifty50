@@ -33,7 +33,7 @@ public class Main {
         try {
             main = new Main();
         } catch (Exception e) {
-            System.out.println("Parameter benötigt: Server adresse, Server port");
+            System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream");
             System.exit(1);
         }
 
@@ -68,7 +68,7 @@ public class Main {
         main.connectToServer(args[0], Integer.parseInt(args[1]));
 
         //create a new instance of the cambozola mjpg player applet for the live stream
-        final String url = "http://localhost:8080/?action=stream";
+        final String url = args[2];
         Viewer viewer = new Viewer();
         AppletStub stub = new AppletStub() {
             @Override
@@ -80,7 +80,7 @@ public class Main {
             public URL getDocumentBase() {
                 URL base = null;
                 try {
-                    base = new URL("http://localhost:8080");
+                    base = new URL(url);
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 }
@@ -91,7 +91,7 @@ public class Main {
             public URL getCodeBase() {
                 URL base = null;
                 try {
-                    base = new URL("http://localhost:8080");
+                    base = new URL(url);
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 }

@@ -148,16 +148,16 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
         //
         // Set up the initial message.
         //
-        String appMsg = m_props.getAppNameVersion() + " " + m_props.getCopyright();
+        String appMsg = "Cambozola v0.935";//m_props.getAppNameVersion() + " " + m_props.getCopyright();
         if (m_showCopyright) {
             //
             // Possibly set the message.
             //
             setMessage(appMsg);
         }
-        System.err.println("// " + appMsg);
-        System.err.println("// Build date: " + m_props.getBuildDate());
-        System.err.println("// Available from " + m_props.getLocURL());
+        System.out.println("// " + appMsg);
+        //System.out.println("// Build date: " + m_props.getBuildDate());
+        //System.out.println("// Available from " + m_props.getLocURL());
         //
         // Load the failure Image.
         //
@@ -243,7 +243,7 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
             //
             m_profile = new Profile_LocalPTZ(this);
         }
-        System.err.println("// Using Camera profile: " + m_profile.getDescription());
+        System.out.println("// Using Camera profile: " + m_profile.getDescription());
         //
         setCurrentURL(m_mainURL);
         setAlternateURLs(m_alternateURLs);
@@ -883,34 +883,34 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
 
     public static void usage()
     {
-        System.err.println("Usage: WebCamURL [otherURLs] [-accessories=comma separated accessory list]");
-        System.err.println("Current set of accessories are:");
-        System.err.println(" o ZoomIn       - Zooms in to the image");
-        System.err.println(" o ZoomOut      - Zooms out of the image");
-        System.err.println(" o Home         - Shows all the image");
-        System.err.println(" o Pan          - Pan around a zoomed-in image");
-        System.err.println(" o ChangeStream - Swap to a different stream (if > 1 listed)");
-        System.err.println(" o Info         - Displays information about the stream");
-        System.err.println(" o WWWHelp      - Displays a web page showing help");
-        System.err.println("");
-        System.err.println(" -debug                      Write debug information");
-        System.err.println(" -width={width}              Sets the width of the application");
-        System.err.println(" -height={height}            Sets the height of the application");
-        System.err.println(" -noaccessories              Will not display any accessories");
-        System.err.println(" -accessories=none           Will not display any accessories");
-        System.err.println(" -accessories=default        Will display the default set of accessories");
-        System.err.println(" -accessorystyle={see below} Defines how the accessories will appear on top-left");
-        System.err.println("   indent                      Will squeeze the image [default]");
-        System.err.println("   overlay                     Will overlay the accessories onto the image");
-        System.err.println("   always                      Always display the accessories (overlaid)");
-        System.err.println(" -retries={num}              The number of retries (default = 1)");
-        System.err.println(" -delay={num}                The number of milliseconds between retries");
-        System.err.println(" -failureimage={url}         Image to display if failure to connect");
-        System.err.println(" -backgroundColor=#RRGGBB    Background Color in hex - e.g. #FF0000 for red");
-        System.err.println(" -textColor=#RRGGBB          Text Color in hex - e.g. #FFFFFF for white");
-        System.err.println(" -userAgent={useragent}      Sets the user-agent string, which will be used in the HTTP-request (f.e. 'Mozilla/5.0'");
-        System.err.println(" -profile={Camera Profile}   Choose profile for camera");
-        System.err.println(" -watermark={see below}      List of watermarks, separated by '|'");
-        System.err.println("   imageURL|corner|linkURL     Watermark information, separated by '|'");
+        System.out.println("Usage: WebCamURL [otherURLs] [-accessories=comma separated accessory list]");
+        System.out.println("Current set of accessories are:");
+        System.out.println(" o ZoomIn       - Zooms in to the image");
+        System.out.println(" o ZoomOut      - Zooms out of the image");
+        System.out.println(" o Home         - Shows all the image");
+        System.out.println(" o Pan          - Pan around a zoomed-in image");
+        System.out.println(" o ChangeStream - Swap to a different stream (if > 1 listed)");
+        System.out.println(" o Info         - Displays information about the stream");
+        System.out.println(" o WWWHelp      - Displays a web page showing help");
+        System.out.println("");
+        System.out.println(" -debug                      Write debug information");
+        System.out.println(" -width={width}              Sets the width of the application");
+        System.out.println(" -height={height}            Sets the height of the application");
+        System.out.println(" -noaccessories              Will not display any accessories");
+        System.out.println(" -accessories=none           Will not display any accessories");
+        System.out.println(" -accessories=default        Will display the default set of accessories");
+        System.out.println(" -accessorystyle={see below} Defines how the accessories will appear on top-left");
+        System.out.println("   indent                      Will squeeze the image [default]");
+        System.out.println("   overlay                     Will overlay the accessories onto the image");
+        System.out.println("   always                      Always display the accessories (overlaid)");
+        System.out.println(" -retries={num}              The number of retries (default = 1)");
+        System.out.println(" -delay={num}                The number of milliseconds between retries");
+        System.out.println(" -failureimage={url}         Image to display if failure to connect");
+        System.out.println(" -backgroundColor=#RRGGBB    Background Color in hex - e.g. #FF0000 for red");
+        System.out.println(" -textColor=#RRGGBB          Text Color in hex - e.g. #FFFFFF for white");
+        System.out.println(" -userAgent={useragent}      Sets the user-agent string, which will be used in the HTTP-request (f.e. 'Mozilla/5.0'");
+        System.out.println(" -profile={Camera Profile}   Choose profile for camera");
+        System.out.println(" -watermark={see below}      List of watermarks, separated by '|'");
+        System.out.println("   imageURL|corner|linkURL     Watermark information, separated by '|'");
     }
 }
