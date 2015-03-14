@@ -8,8 +8,8 @@ package com.fifty50.computer;
 
 
 public enum FingerName {
-    LITTLE, RING, MIDDLE, INDEX, THUMB,
-    UNKNOWN;
+    KLEINER, RING, MITTEL, ZEIGE, DAUMEN,
+    UNBEKANNT;
 
 
     public FingerName getNext() {

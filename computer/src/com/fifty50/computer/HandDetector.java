@@ -8,15 +8,16 @@ package com.fifty50.computer;
    that it is a left hand, label the fingers.
 */
 
-import java.io.*;
-import java.awt.*;
-import java.awt.image.*;
-import java.util.*;
-
 import com.googlecode.javacpp.Loader;
+import com.googlecode.javacpp.Pointer;
 
-import com.googlecode.javacpp.*;
-import com.googlecode.javacv.cpp.opencv_objdetect;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 import static com.googlecode.javacv.cpp.opencv_core.*;
 import static com.googlecode.javacv.cpp.opencv_imgproc.*;
@@ -388,7 +389,7 @@ public class HandDetector {
   */ { // reset all named fingers to unknown
         namedFingers.clear();
         for (int i = 0; i < fingerTips.size(); i++)
-            namedFingers.add(FingerName.UNKNOWN);
+            namedFingers.add(FingerName.UNBEKANNT);
 
         labelThumbIndex(fingerTips, namedFingers);
 
@@ -417,13 +418,13 @@ public class HandDetector {
 
             // check for thumb
             if ((angle <= MAX_THUMB) && (angle > MIN_THUMB) && !foundThumb) {
-                nms.set(i, FingerName.THUMB);
+                nms.set(i, FingerName.DAUMEN);
                 foundThumb = true;
             }
 
             // check for index
             if ((angle <= MAX_INDEX) && (angle > MIN_INDEX) && !foundIndex) {
-                nms.set(i, FingerName.INDEX);
+                nms.set(i, FingerName.ZEIGE);
                 foundIndex = true;
             }
             i--;
@@ -458,7 +459,7 @@ public class HandDetector {
     {
         // find first named finger
         int i = 0;
-        while ((i < nms.size()) && (nms.get(i) == FingerName.UNKNOWN))
+        while ((i < nms.size()) && (nms.get(i) == FingerName.UNBEKANNT))
             i++;
         if (i == nms.size())   // no named fingers found, so give up
             return;
@@ -473,8 +474,8 @@ public class HandDetector {
     // move backwards through fingers list labelling unknown fingers
     {
         i--;
-        while ((i >= 0) && (name != FingerName.UNKNOWN)) {
-            if (nms.get(i) == FingerName.UNKNOWN) {   // unknown finger
+        while ((i >= 0) && (name != FingerName.UNBEKANNT)) {
+            if (nms.get(i) == FingerName.UNBEKANNT) {   // unknown finger
                 name = name.getPrev();
                 if (!usedName(nms, name))
                     nms.set(i, name);
@@ -489,8 +490,8 @@ public class HandDetector {
     // move forward through fingers list labelling unknown fingers
     {
         i++;
-        while ((i < nms.size()) && (name != FingerName.UNKNOWN)) {
-            if (nms.get(i) == FingerName.UNKNOWN) {  // unknown finger
+        while ((i < nms.size()) && (name != FingerName.UNBEKANNT)) {
+            if (nms.get(i) == FingerName.UNBEKANNT) {  // unknown finger
                 name = name.getNext();
                 if (!usedName(nms, name))
                     nms.set(i, name);
@@ -528,7 +529,7 @@ public class HandDetector {
         g2d.setFont(msgFont);
         for (int i = 0; i < fingerTips.size(); i++) {
             Point pt = fingerTips.get(i);
-            if (namedFingers.get(i) == FingerName.UNKNOWN) {
+            if (namedFingers.get(i) == FingerName.UNBEKANNT) {
                 g2d.setPaint(Color.RED);   // unnamed finger tip is red
                 g2d.drawOval(pt.x - 8, pt.y - 8, 16, 16);
                 g2d.drawString("" + i, pt.x, pt.y - 10);   // label it with a digit

@@ -8,12 +8,12 @@ package com.fifty50.computer;
 
 */
 
-import java.awt.*;
+import com.googlecode.javacv.FrameGrabber;
+
 import javax.swing.*;
+import java.awt.*;
 
-import com.googlecode.javacv.*;
-
-import static com.googlecode.javacv.cpp.opencv_core.*;
+import static com.googlecode.javacv.cpp.opencv_core.IplImage;
 
 
 public class HandPanel extends JPanel implements Runnable {
@@ -171,7 +171,7 @@ public class HandPanel extends JPanel implements Runnable {
         if (imageCount > 0) {
             String statsMsg = String.format("Snap Avg. Time:  %.1f ms",
                     ((double) totalTime / imageCount));
-            g2d.drawString(statsMsg + ", Contour angle: " + gestureDetector.getSmoothAngle() + "°, " + "Fingers: " + detector.getFingerTips().size() + ", " + gestureDetector.getCurrDirection(), 5, HEIGHT - 10);
+            g2d.drawString(statsMsg + ", Contour angle: " + gestureDetector.getSmoothAngle() + "°, " + "Fingers: " + gestureDetector.getFingerCount() + ", " + gestureDetector.getCurrDirection(), 5, HEIGHT - 10);
             // write statistics in bottom-left corner
         } else  // no image yet
             g2d.drawString("Loading...", 5, HEIGHT - 10);

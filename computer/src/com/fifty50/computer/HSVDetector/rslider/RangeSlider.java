@@ -1,4 +1,3 @@
-
 // RangeSlider.java
 // Ernie Yu, December 2010, 
 
@@ -21,91 +20,91 @@
 
 package com.fifty50.computer.HSVDetector.rslider;
 
+import javax.swing.*;
 import java.awt.*;
-import javax.swing.JSlider;
 
 
-public class RangeSlider extends JSlider
-{
-  /* Constructs a RangeSlider with default minimum and maximum values of 0
-     and 100.  */
-  public RangeSlider()
-  {  initSlider();  }
+public class RangeSlider extends JSlider {
+    /* Constructs a RangeSlider with default minimum and maximum values of 0
+       and 100.  */
+    public RangeSlider() {
+        initSlider();
+    }
 
 
-  // Constructs a RangeSlider with the specified default minimum and maximum values
-  public RangeSlider(int min, int max)
-  { super(min, max);
-    initSlider();
-  }
+    // Constructs a RangeSlider with the specified default minimum and maximum values
+    public RangeSlider(int min, int max) {
+        super(min, max);
+        initSlider();
+    }
 
 
-  public RangeSlider(int min, int max, int lower, int upper)   // added by Andrew
-  { super(min, max);
-    initSlider();
-    setUpperValue(upper);
-    setValue(lower);
-  }
+    public RangeSlider(int min, int max, int lower, int upper)   // added by Andrew
+    {
+        super(min, max);
+        initSlider();
+        setUpperValue(upper);
+        setValue(lower);
+    }
 
 
-  // Initializes the slider by setting default properties.
-  private void initSlider() 
-  { setOrientation(HORIZONTAL);
-    setPreferredSize(new Dimension(240, getPreferredSize().height)); // added by Andrew
-  }
+    // Initializes the slider by setting default properties.
+    private void initSlider() {
+        setOrientation(HORIZONTAL);
+        setPreferredSize(new Dimension(240, getPreferredSize().height)); // added by Andrew
+    }
 
 
-  // Overrides the superclass method to install the UI delegate to draw two thumbs
-  @Override
-  public void updateUI()
-  {
-    setUI(new RangeSliderUI(this));
-    // Update UI for slider labels.  This must be called after updating the
-    // UI of the slider.  Refer to JSlider.updateUI().
-    updateLabelUIs();
-  }
+    // Overrides the superclass method to install the UI delegate to draw two thumbs
+    @Override
+    public void updateUI() {
+        setUI(new RangeSliderUI(this));
+        // Update UI for slider labels.  This must be called after updating the
+        // UI of the slider.  Refer to JSlider.updateUI().
+        updateLabelUIs();
+    }
 
 
-  // Returns the lower value in the range
-  @Override
-  public int getValue()
-  {  return super.getValue();  }
+    // Returns the lower value in the range
+    @Override
+    public int getValue() {
+        return super.getValue();
+    }
 
 
-  // Sets the lower value in the range
-  @Override
-  public void setValue(int value)
-  {
-    int oldValue = getValue();
-    if (oldValue == value)
-      return;
+    // Sets the lower value in the range
+    @Override
+    public void setValue(int value) {
+        int oldValue = getValue();
+        if (oldValue == value)
+            return;
 
-    // Compute new value and extent to maintain upper value
-    int oldExtent = getExtent();
-    int newValue = Math.min(Math.max(getMinimum(), value), oldValue + oldExtent);
-    int newExtent = oldExtent + oldValue - newValue;
+        // Compute new value and extent to maintain upper value
+        int oldExtent = getExtent();
+        int newValue = Math.min(Math.max(getMinimum(), value), oldValue + oldExtent);
+        int newExtent = oldExtent + oldValue - newValue;
 
-    // Set new value and extent, and fire a single change event.
-    getModel().setRangeProperties(newValue, newExtent, getMinimum(), 
-                                    getMaximum(), getValueIsAdjusting());
-  }  // end of setValue()
-
-
-  // Returns the upper value in the range
-  public int getUpperValue()
-  {  return getValue() + getExtent();   }
+        // Set new value and extent, and fire a single change event.
+        getModel().setRangeProperties(newValue, newExtent, getMinimum(),
+                getMaximum(), getValueIsAdjusting());
+    }  // end of setValue()
 
 
-  // Sets the upper value in the range
-  public void setUpperValue(int value)
-  {
-    // Compute new extent
-    int lowerValue = getValue();
-    int newExtent = Math.min(Math.max(0, value - lowerValue),
-        getMaximum() - lowerValue);
-    // Set extent to set upper value
-    setExtent(newExtent);
-  }  // end of setUpperValue()
+    // Returns the upper value in the range
+    public int getUpperValue() {
+        return getValue() + getExtent();
+    }
+
+
+    // Sets the upper value in the range
+    public void setUpperValue(int value) {
+        // Compute new extent
+        int lowerValue = getValue();
+        int newExtent = Math.min(Math.max(0, value - lowerValue),
+                getMaximum() - lowerValue);
+        // Set extent to set upper value
+        setExtent(newExtent);
+    }  // end of setUpperValue()
 
 
 }  // end of RangeSlider class

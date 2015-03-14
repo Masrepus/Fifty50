@@ -9,14 +9,13 @@ package com.fifty50.computer;
    > run Handy
 */
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import java.io.*;
-
-import com.googlecode.javacv.*;
-import com.googlecode.javacv.cpp.*;
 import com.googlecode.javacpp.Loader;
+import com.googlecode.javacv.cpp.opencv_objdetect;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 
 public class Handy extends JFrame {

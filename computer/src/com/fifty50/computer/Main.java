@@ -16,16 +16,10 @@ import java.net.URL;
  */
 public class Main {
 
-    public static enum Speed {SLOW, FAST}
-
     private DataOutputStream out;
     private GameWindow window;
     private Socket client;
     private OutputStream outToServer;
-
-    public void attachWindow(GameWindow window) {
-        this.window = window;
-    }
 
     public static void main(String[] args) {
 
@@ -164,7 +158,9 @@ public class Main {
         }
     }
 
-
+    public void attachWindow(GameWindow window) {
+        this.window = window;
+    }
 
     public void connectToServer(String serverName, int port) {
         new Connector(serverName, port).start();
@@ -282,6 +278,8 @@ public class Main {
             System.out.println("Fehler beim Senden des Befehls " + command);
         }
     }
+
+    public static enum Speed {SLOW, FAST}
 
     private class Connector extends Thread {
 
