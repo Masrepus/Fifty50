@@ -3,7 +3,7 @@ package com.fifty50.computer;
 // Andrew Davison, ad@fivedots.coe.psu.ac.th, July 2013
 
 /* Analyze an image containing an HSV coloured gloved hand.
-   Find the largest contour, its convex hull, amnd convexity
+   Find the largest contour, its convex hull, and convexity
    defects. Extract finger tips from the defects and, by assuming
    that it is a left hand, label the fingers.
 */
@@ -11,14 +11,12 @@ package com.fifty50.computer;
 import java.io.*;
 import java.awt.*;
 import java.awt.image.*;
-import java.awt.geom.*;
 import java.util.*;
 
-import com.googlecode.javacv.*;
-import com.googlecode.javacv.cpp.*;
 import com.googlecode.javacpp.Loader;
 
 import com.googlecode.javacpp.*;
+import com.googlecode.javacv.cpp.opencv_objdetect;
 
 import static com.googlecode.javacv.cpp.opencv_core.*;
 import static com.googlecode.javacv.cpp.opencv_imgproc.*;
@@ -27,7 +25,7 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.*;
 public class HandDetector {
     private static final int IMG_SCALE = 2;  // scaling applied to webcam image
 
-    private static final float SMALLEST_AREA = 600.0f;    // was 100.0f;
+    private static final float SMALLEST_AREA = 50.0f;    // was 600.0f;
     // ignore smaller contour areas
 
     private static final int MAX_POINTS = 20;   // max number of points stored in an array
@@ -99,7 +97,8 @@ public class HandDetector {
      These were previously stored using the HSV Selector application 
      (see NUI chapter 5 on blobs drumming). */ {
         try {
-            BufferedReader in = new BufferedReader(new FileReader(fnm));
+            BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/samuel/gloveHSV.txt"))));
+            //BufferedReader in = new BufferedReader(new FileReader(fnm));
             String line = in.readLine();   // get hues
             String[] toks = line.split("\\s+");
             hueLower = Integer.parseInt(toks[1]);
@@ -250,7 +249,7 @@ public class HandDetector {
          /* this makes the angle relative to a positive y-axis that
             runs up the screen */
 
-        // System.out.println("Contour angle: " + contourAxisAngle);
+        //System.out.println("Contour angle: " + contourAxisAngle);
     }  // end of extractContourInfo()
 
 
@@ -548,5 +547,21 @@ public class HandDetector {
         g2d.fillOval(cogPt.x - 8, cogPt.y - 8, 16, 16);
     }  // end of draw()
 
+
+    public ArrayList<FingerName> getNamedFingers() {
+        return namedFingers;
+    }
+
+    public ArrayList<Point> getFingerTips() {
+        return fingerTips;
+    }
+
+    public Point getCogPoint() {
+        return cogPt;
+    }
+
+    public int getContourAxisAngle() {
+        return contourAxisAngle;
+    }
 
 }  // end of HandDetector class

@@ -10,25 +10,18 @@ package com.fifty50.computer;
 
 import java.awt.*;
 import javax.swing.*;
-import java.awt.image.*;
-import java.io.*;
 
 import com.googlecode.javacv.*;
-import com.googlecode.javacv.cpp.*;
-import com.googlecode.javacv.cpp.videoInputLib.*;
 
 import static com.googlecode.javacv.cpp.opencv_core.*;
-import static com.googlecode.javacv.cpp.opencv_imgproc.*;
-import static com.googlecode.javacv.cpp.opencv_highgui.*;
-import static com.googlecode.javacv.cpp.avutil.*;   // for grabber/recorder constants
 
 
 public class HandPanel extends JPanel implements Runnable {
     /* dimensions of each image; the panel is the same size as the image */
-    private static final int WIDTH = 640;
-    private static final int HEIGHT = 480;
+    private static final int WIDTH = 1280;
+    private static final int HEIGHT = 720;
 
-    private static final int DELAY = 200;  // time (ms) between redraws of the panel
+    private static final int DELAY = 100;  // time (ms) between redraws of the panel
 
     private static final int CAMERA_ID = 0;
 
@@ -43,13 +36,14 @@ public class HandPanel extends JPanel implements Runnable {
     private Font msgFont;
 
     private HandDetector detector = null;   // for detecting hand and fingers
+    private GestureDetector gestureDetector;
 
 
     public HandPanel() {
         setBackground(Color.white);
         msgFont = new Font("SansSerif", Font.BOLD, 18);
-
-        new Thread(this).start();   // start updating the panel's image
+        detector = new HandDetector("gloveHSV.txt", WIDTH, HEIGHT);
+        // include the HSV color info about the user's gloved hand
     } // end of HandPanel()
 
 
@@ -70,9 +64,6 @@ public class HandPanel extends JPanel implements Runnable {
         FrameGrabber grabber = initGrabber(CAMERA_ID);
         if (grabber == null)
             return;
-
-        detector = new HandDetector("gloveHSV.txt", WIDTH, HEIGHT);
-        // include the HSV color info about the user's gloved hand
 
         long duration;
         isRunning = true;
@@ -103,7 +94,7 @@ public class HandPanel extends JPanel implements Runnable {
 
     private FrameGrabber initGrabber(int ID) {
         FrameGrabber grabber = null;
-        System.out.println("Initializing grabber for " + videoInput.getDeviceName(ID) + " ...");
+        System.out.println("Initializing grabber for " + CAMERA_ID + " ...");
         try {
             grabber = FrameGrabber.createDefault(ID);
             grabber.setFormat("dshow");       // using DirectShow
@@ -153,6 +144,21 @@ public class HandPanel extends JPanel implements Runnable {
         if (detector != null)
             detector.draw(g2d);    // draws detected hand and finger info
 
+        //paint a triangle pointing to the direction where the car is currently steering to
+        int centerVertical = HEIGHT / 2;
+
+        if (gestureDetector.getCurrDirection() == GestureDetector.Direction.LEFT) {
+            g2d.setColor(Color.RED);
+            g2d.fillPolygon(new int[]{0, 20, 20}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+        } else if (gestureDetector.getCurrDirection() == GestureDetector.Direction.RIGHT) {
+            g2d.setColor(Color.RED);
+            g2d.fillPolygon(new int[]{WIDTH, WIDTH - 20, WIDTH - 20}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+        } else {
+            g2d.setColor(Color.BLUE);
+            g2d.fillPolygon(new int[]{0, 20, 20}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+            g2d.fillPolygon(new int[]{WIDTH, WIDTH - 20, WIDTH - 20}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+        }
+
         writeStats(g2d);
     } // end of paintComponent()
 
@@ -165,7 +171,7 @@ public class HandPanel extends JPanel implements Runnable {
         if (imageCount > 0) {
             String statsMsg = String.format("Snap Avg. Time:  %.1f ms",
                     ((double) totalTime / imageCount));
-            g2d.drawString(statsMsg, 5, HEIGHT - 10);
+            g2d.drawString(statsMsg + ", Contour angle: " + gestureDetector.getSmoothAngle() + "°, " + "Fingers: " + detector.getFingerTips().size() + ", " + gestureDetector.getCurrDirection(), 5, HEIGHT - 10);
             // write statistics in bottom-left corner
         } else  // no image yet
             g2d.drawString("Loading...", 5, HEIGHT - 10);
@@ -188,5 +194,14 @@ public class HandPanel extends JPanel implements Runnable {
     } // end of closeDown()
 
 
+    public HandDetector getDetector() {
+        return detector;
+    }
+
+    public void setGestureDetector(GestureDetector gestureDetector) {
+        this.gestureDetector = gestureDetector;
+
+        new Thread(this).start();   // start updating the panel's image beacuse the gesture detector is ready
+    }
 } // end of HandPanel class
 

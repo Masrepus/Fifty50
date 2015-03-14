@@ -120,6 +120,17 @@ public class Main {
         frame.setVisible(true);
         viewer.init();
 
+        //init the gesture detection
+        HandPanel handPanel = new HandPanel();
+        GestureDetector detector = new GestureDetector(main, handPanel);
+        detector.start();
+        JFrame frame2 = new JFrame("Gesture Detector");
+        frame2.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame2.setExtendedState(Frame.MAXIMIZED_BOTH);
+        frame2.add(handPanel);
+        frame2.pack();
+        frame2.setVisible(true);
+
         //start listening for console input
         BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
 
@@ -152,6 +163,8 @@ public class Main {
             }
         }
     }
+
+
 
     public void connectToServer(String serverName, int port) {
         new Connector(serverName, port).start();
