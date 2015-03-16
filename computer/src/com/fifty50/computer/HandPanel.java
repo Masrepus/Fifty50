@@ -168,6 +168,11 @@ public class HandPanel extends JPanel implements Runnable {
         if (isCalibrated) {
             g2d.setColor(Color.RED);
             g2d.fillRect(gestureDetector.getCenter().x - 5, 0, 10, HEIGHT);
+
+            //draw two lines at the ends of the threshold area
+            g2d.setColor(Color.BLUE);
+            g2d.fillRect(gestureDetector.getCenter().x - GestureDetector.CENTER_THRESHOLD, 0, 1, HEIGHT);
+            g2d.fillRect(gestureDetector.getCenter().x + GestureDetector.CENTER_THRESHOLD, 0, 1, HEIGHT);
         }
     } // end of paintComponent()
 

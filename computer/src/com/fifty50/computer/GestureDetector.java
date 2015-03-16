@@ -14,6 +14,7 @@ public class GestureDetector extends Thread {
     private static final int ANGLE_SMOOTHING_VALUE = 10;
     private static final int FINGER_SMOOTHING_VALUE = 0;
     private static final int DIR_CACHE_SIZE = 1;
+    public static final int CENTER_THRESHOLD = 75;
 
     private Main main;
     private HandDetector detector;
@@ -45,58 +46,61 @@ public class GestureDetector extends Thread {
 
         while (isAlive()) {
 
-            try {
-                handPosition = detector.getCogPoint();
-                smoothFingers = fingersMovingAverage(detector.getFingerTips().size());
+            //only start sending commands after calibration
+            if (center != null) {
+                try {
+                    handPosition = detector.getCogPoint();
+                    smoothFingers = fingersMovingAverage(detector.getFingerTips().size());
 
-                //accelerate if there are fingers being shown, else brake
-                if (smoothFingers > 0) {
-                    currSpeed = Speed.ACCELERATE;
-                } else currSpeed = Speed.BRAKE;
+                    //accelerate if there are fingers being shown, else brake
+                    if (smoothFingers > 0) {
+                        currSpeed = Speed.ACCELERATE;
+                    } else currSpeed = Speed.BRAKE;
 
 
-                //check the angle
-                smoothAngle = angleMovingAverage(detector.getContourAxisAngle());
+                    //check the angle
+                    smoothAngle = angleMovingAverage(detector.getContourAxisAngle());
 
-                //steer to the left or to the right if the hand is pointing either left or right and it is right/left of the center of the player
+                    //steer to the left or to the right if the hand is pointing either left or right and it is right/left of the center of the player
 
-                System.out.println("Axis angle: " + smoothAngle + "°");
+                    System.out.println("Axis angle: " + smoothAngle + "°");
 
-                if (smoothAngle > -20 && smoothAngle < 80 && handPosition.getX() > (center.getX() + 50)) {
-                    currDirection = Direction.LEFT;//dirMovingAverage(Direction.LEFT);
-                } else if (smoothAngle > 100 && smoothAngle < 200 && handPosition.getX() < (center.getX() - 50)) {
-                    currDirection = Direction.RIGHT; //dirMovingAverage(Direction.RIGHT);
-                } else currDirection = Direction.STRAIGHT;
+                    if (smoothAngle > -20 && smoothAngle < 80 && handPosition.getX() > (center.getX() + CENTER_THRESHOLD)) {
+                        currDirection = Direction.LEFT;//dirMovingAverage(Direction.LEFT);
+                    } else if (smoothAngle > 100 && smoothAngle < 200 && handPosition.getX() < (center.getX() - CENTER_THRESHOLD)) {
+                        currDirection = Direction.RIGHT; //dirMovingAverage(Direction.RIGHT);
+                    } else currDirection = Direction.STRAIGHT;
 
-                //now send the current direction to the car, if it isn't the same as last time
-                if (currDirection != lastSentCommand) {
-                    switch (currDirection) {
+                    //now send the current direction to the car, if it isn't the same as last time
+                    if (currDirection != lastSentCommand) {
+                        switch (currDirection) {
 
-                        case LEFT:
-                            main.left(Main.Speed.FAST);
-                            break;
-                        case RIGHT:
-                            main.right(Main.Speed.FAST);
-                            break;
-                        case STRAIGHT:
-                            main.straight();
-                            break;
+                            case LEFT:
+                                main.left(Main.Speed.FAST);
+                                break;
+                            case RIGHT:
+                                main.right(Main.Speed.FAST);
+                                break;
+                            case STRAIGHT:
+                                main.straight();
+                                break;
+                        }
                     }
-                }
 
-                //now send the current speed mode
-                if (currSpeed != lastSentSpeed) {
-                    switch (currSpeed) {
+                    //now send the current speed mode
+                    if (currSpeed != lastSentSpeed) {
+                        switch (currSpeed) {
 
-                        case ACCELERATE:
-                            main.forward(Main.Speed.FAST);
-                            break;
-                        case BRAKE:
-                            main.brake();
-                            break;
+                            case ACCELERATE:
+                                main.forward(Main.Speed.FAST);
+                                break;
+                            case BRAKE:
+                                main.brake();
+                                break;
+                        }
                     }
+                } catch (Exception ignored) {
                 }
-            } catch (Exception ignored) {
             }
         }
     }
