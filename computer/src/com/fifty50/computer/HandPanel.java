@@ -38,6 +38,9 @@ public class HandPanel extends JPanel implements Runnable {
     private HandDetector detector = null;   // for detecting hand and fingers
     private GestureDetector gestureDetector;
 
+    private String extraMsg;
+    private boolean isCalibrated;
+
 
     public HandPanel() {
         setBackground(Color.white);
@@ -160,6 +163,12 @@ public class HandPanel extends JPanel implements Runnable {
         }
 
         writeStats(g2d);
+
+        //paint a vertical line where the player has set his center point if calibration has been done already
+        if (isCalibrated) {
+            g2d.setColor(Color.RED);
+            g2d.fillRect(gestureDetector.getCenter().x - 5, 0, 10, HEIGHT);
+        }
     } // end of paintComponent()
 
 
@@ -171,12 +180,15 @@ public class HandPanel extends JPanel implements Runnable {
         if (imageCount > 0) {
             String statsMsg = String.format("Snap Avg. Time:  %.1f ms",
                     ((double) totalTime / imageCount));
-            g2d.drawString(statsMsg + ", Contour angle: " + gestureDetector.getSmoothAngle() + "°, " + "Fingers: " + gestureDetector.getFingerCount() + ", " + gestureDetector.getCurrDirection(), 5, HEIGHT - 10);
+            g2d.drawString(statsMsg + ", Contour angle: " + gestureDetector.getSmoothAngle() + "°, " + "Fingers: " + gestureDetector.getFingerCount() + ", " + gestureDetector.getCurrDirection() + "    " + extraMsg, 5, HEIGHT - 10);
             // write statistics in bottom-left corner
         } else  // no image yet
             g2d.drawString("Loading...", 5, HEIGHT - 10);
     }  // end of writeStats()
 
+    public void setExtraMsg(String extraMsg) {
+        this.extraMsg = extraMsg;
+    }
 
     // --------------- called from the top-level JFrame ------------------
 
@@ -202,6 +214,10 @@ public class HandPanel extends JPanel implements Runnable {
         this.gestureDetector = gestureDetector;
 
         new Thread(this).start();   // start updating the panel's image beacuse the gesture detector is ready
+    }
+
+    public void setIsCalibrated(boolean isCalibrated) {
+        this.isCalibrated = isCalibrated;
     }
 } // end of HandPanel class
 

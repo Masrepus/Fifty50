@@ -14,12 +14,14 @@ import java.net.URL;
 /**
  * Created by samuel on 02.02.15.
  */
-public class Main {
+public class Main implements OnCalibrationFininshedListener {
 
+    private GestureDetector detector;
     private DataOutputStream out;
     private GameWindow window;
     private Socket client;
     private OutputStream outToServer;
+    private HandPanel handPanel;
 
     public static void main(String[] args) {
 
@@ -116,7 +118,13 @@ public class Main {
 
         //init the gesture detection
         HandPanel handPanel = new HandPanel();
+        handPanel.setFocusable(true);
+        handPanel.requestFocus();
+        handPanel.addKeyListener(window);
+        main.attachPanel(handPanel);
+
         GestureDetector detector = new GestureDetector(main, handPanel);
+        main.attachDetector(detector);
         detector.start();
         JFrame frame2 = new JFrame("Gesture Detector");
         frame2.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -156,6 +164,14 @@ public class Main {
                 break;
             }
         }
+    }
+
+    private void attachPanel(HandPanel handPanel) {
+        this.handPanel = handPanel;
+    }
+
+    private void attachDetector(GestureDetector detector) {
+        this.detector = detector;
     }
 
     public void attachWindow(GameWindow window) {
@@ -277,6 +293,18 @@ public class Main {
         } catch (IOException e) {
             System.out.println("Fehler beim Senden des Befehls " + command);
         }
+    }
+
+    public void requestCalibration() {
+        //the calibration button was pressed, pass this to the gesture detector
+        handPanel.setExtraMsg("Kalibrieren...");
+        detector.calibrate(this);
+    }
+
+    @Override
+    public void calibrationFinished(Point center) {
+        handPanel.setExtraMsg("Kalibrieren beendet. Mittelpunkt: (" + center.x + "/" + center.y + ")");
+        handPanel.setIsCalibrated(true);
     }
 
     public static enum Speed {SLOW, FAST}

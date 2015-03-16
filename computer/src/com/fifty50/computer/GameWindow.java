@@ -57,6 +57,9 @@ public class GameWindow implements KeyListener {
             case KeyEvent.VK_RIGHT:
                 main.right(Main.Speed.FAST);
                 break;
+            case KeyEvent.VK_ENTER:
+                main.requestCalibration();
+                break;
         }
     }
 
