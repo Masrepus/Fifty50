@@ -10,6 +10,8 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
+import java.util.*;
+import java.util.Timer;
 
 /**
  * Created by samuel on 02.02.15.
@@ -296,9 +298,26 @@ public class Main implements OnCalibrationFininshedListener {
     }
 
     public void requestCalibration() {
-        //the calibration button was pressed, pass this to the gesture detector
-        handPanel.setExtraMsg("Kalibrieren...");
-        detector.calibrate(this);
+        //wait for 3 seconds
+        final java.util.Timer timer = new Timer();
+        final int[] count = new int[1];
+        handPanel.setExtraMsg("Kalibrieren in 3");
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                if (count[0] < 3) {
+                    //display a countdown message
+                    count[0]++;
+                    handPanel.setExtraMsg("Kalibrieren in " + String.valueOf(3 - (count[0]/2)));
+                }
+                else {
+                    //the calibration button was pressed, pass this to the gesture detector
+                    timer.cancel();
+                    handPanel.setExtraMsg("Kalibrieren...");
+                    detector.calibrate(Main.this);
+                }
+            }
+        }, 1000, 1000);
     }
 
     @Override

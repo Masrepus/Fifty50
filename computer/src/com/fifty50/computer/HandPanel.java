@@ -155,11 +155,11 @@ public class HandPanel extends JPanel implements Runnable {
             g2d.fillPolygon(new int[]{0, 20, 20}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
         } else if (gestureDetector.getCurrDirection() == GestureDetector.Direction.RIGHT) {
             g2d.setColor(Color.RED);
-            g2d.fillPolygon(new int[]{WIDTH, WIDTH - 20, WIDTH - 20}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+            g2d.fillPolygon(new int[]{getWidth(), getWidth() - 20, getWidth() - 20}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
         } else {
             g2d.setColor(Color.BLUE);
             g2d.fillPolygon(new int[]{0, 20, 20}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
-            g2d.fillPolygon(new int[]{WIDTH, WIDTH - 20, WIDTH - 20}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+            g2d.fillPolygon(new int[]{getWidth(), getWidth() - 20, getWidth() - 20}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
         }
 
         writeStats(g2d);
@@ -180,7 +180,7 @@ public class HandPanel extends JPanel implements Runnable {
         if (imageCount > 0) {
             String statsMsg = String.format("Snap Avg. Time:  %.1f ms",
                     ((double) totalTime / imageCount));
-            g2d.drawString(statsMsg + ", Contour angle: " + gestureDetector.getSmoothAngle() + "°, " + "Fingers: " + gestureDetector.getFingerCount() + ", " + gestureDetector.getCurrDirection() + "    " + extraMsg, 5, HEIGHT - 10);
+            g2d.drawString(statsMsg + ", Contour angle: " + gestureDetector.getSmoothAngle() + "°, " + "Fingers: " + gestureDetector.getFingerCount() + ", " + gestureDetector.getCurrSpeed() + ", " +gestureDetector.getCurrDirection() + "    " + extraMsg, 5, HEIGHT - 10);
             // write statistics in bottom-left corner
         } else  // no image yet
             g2d.drawString("Loading...", 5, HEIGHT - 10);

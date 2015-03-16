@@ -13,7 +13,7 @@ public class GestureDetector extends Thread {
 
     private static final int ANGLE_SMOOTHING_VALUE = 10;
     private static final int FINGER_SMOOTHING_VALUE = 0;
-    private static final int DIR_CACHE_SIZE = 15;
+    private static final int DIR_CACHE_SIZE = 1;
 
     private Main main;
     private HandDetector detector;
@@ -23,9 +23,12 @@ public class GestureDetector extends Thread {
     private Point handPosition;
     private Point center;
 
-    private Direction currDirection = Direction.BRAKE;
+    private Direction currDirection = Direction.STRAIGHT;
     private Cache<Direction> lastDirections = new Cache<Direction>(DIR_CACHE_SIZE);
-    private Direction lastSentCommand = Direction.BRAKE;
+    private Direction lastSentCommand = Direction.STRAIGHT;
+
+    private Speed currSpeed = Speed.BRAKE;
+    private Speed lastSentSpeed = Speed.BRAKE;
 
     final ArrayList<Point> pointsCache = new ArrayList<Point>();
     private ArrayList<OnCalibrationFininshedListener> listeners = new ArrayList<OnCalibrationFininshedListener>();
@@ -48,8 +51,8 @@ public class GestureDetector extends Thread {
 
                 //accelerate if there are fingers being shown, else brake
                 if (smoothFingers > 0) {
-                    currDirection = dirMovingAverage(Direction.STRAIGHT);
-                } else currDirection = dirMovingAverage(Direction.BRAKE);
+                    currSpeed = Speed.ACCELERATE;
+                } else currSpeed = Speed.BRAKE;
 
 
                 //check the angle
@@ -59,27 +62,37 @@ public class GestureDetector extends Thread {
 
                 System.out.println("Axis angle: " + smoothAngle + "°");
 
-                if (smoothAngle > -20 && smoothAngle < 80 && handPosition.getX() > (center.getX() + 150)) {
-                    currDirection = dirMovingAverage(Direction.LEFT);
-                } else if (smoothAngle > 100 && smoothAngle < 180 && handPosition.getX() < (center.getX() - 150)) {
-                    currDirection = dirMovingAverage(Direction.RIGHT);
-                }
+                if (smoothAngle > -20 && smoothAngle < 80 && handPosition.getX() > (center.getX() + 50)) {
+                    currDirection = Direction.LEFT;//dirMovingAverage(Direction.LEFT);
+                } else if (smoothAngle > 100 && smoothAngle < 200 && handPosition.getX() < (center.getX() - 50)) {
+                    currDirection = Direction.RIGHT; //dirMovingAverage(Direction.RIGHT);
+                } else currDirection = Direction.STRAIGHT;
 
                 //now send the current direction to the car, if it isn't the same as last time
                 if (currDirection != lastSentCommand) {
                     switch (currDirection) {
 
-                        case STRAIGHT:
-                            main.forward(Main.Speed.FAST);
-                            break;
-                        case BRAKE:
-                            main.brake();
-                            break;
                         case LEFT:
                             main.left(Main.Speed.FAST);
                             break;
                         case RIGHT:
                             main.right(Main.Speed.FAST);
+                            break;
+                        case STRAIGHT:
+                            main.straight();
+                            break;
+                    }
+                }
+
+                //now send the current speed mode
+                if (currSpeed != lastSentSpeed) {
+                    switch (currSpeed) {
+
+                        case ACCELERATE:
+                            main.forward(Main.Speed.FAST);
+                            break;
+                        case BRAKE:
+                            main.brake();
                             break;
                     }
                 }
@@ -100,6 +113,10 @@ public class GestureDetector extends Thread {
         return currDirection;
     }
 
+    public Speed getCurrSpeed() {
+        return currSpeed;
+    }
+
     public Point getCenter() {
         return center;
     }
@@ -109,11 +126,10 @@ public class GestureDetector extends Thread {
         //add the new command to the cache and then count each direction's number
         lastDirections.add(direction);
 
-        int[] counts = new int[4];
+        int[] counts = new int[3];
         counts[0] = Collections.frequency(lastDirections, Direction.LEFT);
         counts[1] = Collections.frequency(lastDirections, Direction.RIGHT);
         counts[2] = Collections.frequency(lastDirections, Direction.STRAIGHT);
-        counts[3] = Collections.frequency(lastDirections, Direction.BRAKE);
 
         //get the highest number and return the direction belonging to that ordinal
         int maxValue = 0;
@@ -190,5 +206,6 @@ public class GestureDetector extends Thread {
         }
     }
 
-    public static enum Direction {LEFT, RIGHT, STRAIGHT, BRAKE}
+    public static enum Direction {LEFT, RIGHT, STRAIGHT}
+    public static enum Speed {ACCELERATE, BRAKE}
 }
