@@ -18,8 +18,8 @@ import static com.googlecode.javacv.cpp.opencv_core.IplImage;
 
 public class HandPanel extends JPanel implements Runnable {
     /* dimensions of each image; the panel is the same size as the image */
-    private static final int WIDTH = 1280;
-    private static final int HEIGHT = 720;
+    public static final int WIDTH = 1280;
+    public static final int HEIGHT = 720;
 
     private static final int DELAY = 100;  // time (ms) between redraws of the panel
 
@@ -173,6 +173,9 @@ public class HandPanel extends JPanel implements Runnable {
             g2d.setColor(Color.BLUE);
             g2d.fillRect(gestureDetector.getCenter().x - GestureDetector.CENTER_THRESHOLD, 0, 1, HEIGHT);
             g2d.fillRect(gestureDetector.getCenter().x + GestureDetector.CENTER_THRESHOLD, 0, 1, HEIGHT);
+
+            //draw a horizontal area at the top of the brake area
+            g2d.fillRect(0, HEIGHT - gestureDetector.getBrakeZoneHeight() - 10, WIDTH, 10);
         }
     } // end of paintComponent()
 

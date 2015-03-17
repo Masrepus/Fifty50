@@ -18,11 +18,13 @@ public class GestureDetector extends Thread {
 
     private Main main;
     private HandDetector detector;
+    private HandPanel panel;
 
     private int smoothAngle = 0;
     private int smoothFingers = 0;
     private Point handPosition;
     private Point center;
+    private int brakeZoneHeight;
 
     private Direction currDirection = Direction.STRAIGHT;
     private Cache<Direction> lastDirections = new Cache<Direction>(DIR_CACHE_SIZE);
@@ -38,6 +40,11 @@ public class GestureDetector extends Thread {
     public GestureDetector(Main main, HandPanel panel) {
         this.main = main;
         this.detector = panel.getDetector();
+        this.panel = panel;
+
+        brakeZoneHeight = HandPanel.HEIGHT / 3;
+
+        //callback to panel
         panel.setGestureDetector(this);
     }
 
@@ -53,9 +60,9 @@ public class GestureDetector extends Thread {
                     smoothFingers = fingersMovingAverage(detector.getFingerTips().size());
 
                     //accelerate if there are fingers being shown, else brake
-                    if (smoothFingers > 0) {
-                        currSpeed = Speed.ACCELERATE;
-                    } else currSpeed = Speed.BRAKE;
+                    if (smoothFingers == 0 || handPosition.y > (HandPanel.HEIGHT - brakeZoneHeight)) {
+                        currSpeed = Speed.BRAKE;
+                    } else currSpeed = Speed.ACCELERATE;
 
 
                     //check the angle
@@ -63,9 +70,9 @@ public class GestureDetector extends Thread {
 
                     //steer to the left or to the right if the hand is pointing either left or right and it is right/left of the center of the player
 
-                    if (smoothAngle > -20 && smoothAngle < 80 && handPosition.getX() > (center.getX() + CENTER_THRESHOLD)) {
+                    if (smoothAngle > -20 && smoothAngle < 80 && handPosition.getX() > (center.getX() + CENTER_THRESHOLD) && currSpeed != Speed.BRAKE) {
                         currDirection = Direction.LEFT;
-                    } else if (smoothAngle > 100 && smoothAngle < 200 && handPosition.getX() < (center.getX() - CENTER_THRESHOLD)) {
+                    } else if (smoothAngle > 100 && smoothAngle < 200 && handPosition.getX() < (center.getX() - CENTER_THRESHOLD) && currSpeed != Speed.BRAKE) {
                         currDirection = Direction.RIGHT;
                     } else currDirection = Direction.STRAIGHT;
 
@@ -165,6 +172,10 @@ public class GestureDetector extends Thread {
     public void calibrate(OnCalibrationFininshedListener listener) {
         listeners.add(listener);
         new Calibrator().start();
+    }
+
+    public int getBrakeZoneHeight() {
+        return brakeZoneHeight;
     }
 
     private class Calibrator extends Thread {
