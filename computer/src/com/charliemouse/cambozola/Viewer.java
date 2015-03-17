@@ -113,8 +113,9 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
     private Color m_textColor = Color.black;
     private String m_userAgent = null;
     private ICameraProfile m_profile = null;
+    private Dimension d;
 
-    public Viewer()
+    public Viewer(int width, int height)
     {
         //m_props = AppID.getAppID();
         m_alternateURLs = new Vector();
@@ -123,6 +124,8 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
         m_parameters.put(PAR_ACCESSORYSTYLE, "indent");
 
         m_wmCollection = new WatermarkCollection();
+
+        d = new Dimension(width, height);
     }
 
     public void init()
@@ -282,7 +285,7 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
         });
 
         f.setLayout(new BorderLayout());
-        Viewer cv = new Viewer();
+        Viewer cv = new Viewer(100,100);
         //
         int width = DEFAULT_WIDTH;
         int height = DEFAULT_HEIGHT;
@@ -537,7 +540,6 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
     public void update(Graphics g)
     {
         if (g == null) return;
-        Dimension d = getSize();
         if (m_backingStore == null || m_backingStore.getWidth(this) != d.width || m_backingStore.getHeight(this) != d.height) {
             m_backingStore = new BufferedImage(d.width, d.height, IMG_TYPE);
             //

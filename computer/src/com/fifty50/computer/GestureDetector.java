@@ -42,7 +42,7 @@ public class GestureDetector extends Thread {
         this.detector = panel.getDetector();
         this.panel = panel;
 
-        brakeZoneHeight = HandPanel.HEIGHT / 3;
+        brakeZoneHeight = panel.getHeight() / 3;
 
         //callback to panel
         panel.setGestureDetector(this);
@@ -57,10 +57,10 @@ public class GestureDetector extends Thread {
             if (center != null) {
                 try {
                     handPosition = detector.getCogPoint();
-                    smoothFingers = fingersMovingAverage(detector.getFingerTips().size());
+                    smoothFingers = detector.getFingerTips().size();
 
                     //accelerate if there are fingers being shown, else brake
-                    if (smoothFingers == 0 || handPosition.y > (HandPanel.HEIGHT - brakeZoneHeight)) {
+                    if (smoothFingers == 0 || handPosition.y > (panel.getHeight() - brakeZoneHeight)) {
                         currSpeed = Speed.BRAKE;
                     } else currSpeed = Speed.ACCELERATE;
 
@@ -128,41 +128,6 @@ public class GestureDetector extends Thread {
 
     public Point getCenter() {
         return center;
-    }
-
-    public Direction dirMovingAverage(Direction direction) {
-
-        //add the new command to the cache and then count each direction's number
-        lastDirections.add(direction);
-
-        int[] counts = new int[3];
-        counts[0] = Collections.frequency(lastDirections, Direction.LEFT);
-        counts[1] = Collections.frequency(lastDirections, Direction.RIGHT);
-        counts[2] = Collections.frequency(lastDirections, Direction.STRAIGHT);
-
-        //get the highest number and return the direction belonging to that ordinal
-        int maxValue = 0;
-        int maxIndex = 0;
-
-        for (int i = 0; i < 4; i++) {
-            if (counts[i] > maxValue) {
-                maxValue = counts[i];
-                maxIndex = i;
-            }
-        }
-
-        //now check if the max value's popularity is more than 50%
-        if (maxValue > (lastDirections.size() / 2)) {
-            //use it
-            return Direction.values()[maxIndex];
-        } else {
-            //stay with the last sent command
-            return lastSentCommand;
-        }
-    }
-
-    public int fingersMovingAverage(int fingers) {
-        return ((FINGER_SMOOTHING_VALUE * smoothFingers + fingers) / (FINGER_SMOOTHING_VALUE + 1));
     }
 
     public int getFingerCount() {

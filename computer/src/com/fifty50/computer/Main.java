@@ -37,10 +37,16 @@ public class Main implements OnCalibrationFininshedListener {
 
         GameWindow window = new GameWindow();
         window.init(main);
+        //add the livestream panel
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        int width = tk.getScreenSize().width;
+        int height = tk.getScreenSize().height;
+
         JFrame frame = new JFrame("GameWindow");
-        frame.setContentPane(window.panel1);
+        window.panel1.setBounds(0, 0, width, height / 2);
+        frame.add(window.panel1);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.setExtendedState(Frame.MAXIMIZED_BOTH);
+        frame.setExtendedState(frame.getExtendedState()|Frame.MAXIMIZED_BOTH);
         main.attachWindow(window);
 
         System.out.println("----Fifty50 Racing© Fernsteuerung gestartet---- \n \n");
@@ -67,7 +73,7 @@ public class Main implements OnCalibrationFininshedListener {
 
         //create a new instance of the cambozola mjpg player applet for the live stream
         final String url = args[2];
-        Viewer viewer = new Viewer();
+        Viewer viewer = new Viewer(width, height / 2);
         AppletStub stub = new AppletStub() {
             @Override
             public boolean isActive() {
@@ -113,13 +119,11 @@ public class Main implements OnCalibrationFininshedListener {
             }
         };
         viewer.setStub(stub);
-        frame.add(viewer);
-        frame.pack();
-        frame.setVisible(true);
-        viewer.init();
+        window.panel1.add(viewer);
 
         //init the gesture detection
-        HandPanel handPanel = new HandPanel();
+        HandPanel handPanel = new HandPanel(width, height / 2, 0, height / 2);
+        handPanel.setBounds(0, height / 2, width, height / 2);
         handPanel.setFocusable(true);
         handPanel.requestFocus();
         handPanel.addKeyListener(window);
@@ -128,12 +132,13 @@ public class Main implements OnCalibrationFininshedListener {
         GestureDetector detector = new GestureDetector(main, handPanel);
         main.attachDetector(detector);
         detector.start();
-        JFrame frame2 = new JFrame("Gesture Detector");
-        frame2.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame2.setExtendedState(Frame.MAXIMIZED_BOTH);
-        frame2.add(handPanel);
-        frame2.pack();
-        frame2.setVisible(true);
+
+        frame.add(handPanel);
+
+        //everything is ready, show the jframe
+        frame.pack();
+        frame.setVisible(true);
+        viewer.init();
 
         //start listening for console input
         BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
@@ -168,11 +173,11 @@ public class Main implements OnCalibrationFininshedListener {
         }
     }
 
-    private void attachPanel(HandPanel handPanel) {
+    public void attachPanel(HandPanel handPanel) {
         this.handPanel = handPanel;
     }
 
-    private void attachDetector(GestureDetector detector) {
+    public void attachDetector(GestureDetector detector) {
         this.detector = detector;
     }
 
