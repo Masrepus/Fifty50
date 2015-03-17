@@ -63,12 +63,10 @@ public class GestureDetector extends Thread {
 
                     //steer to the left or to the right if the hand is pointing either left or right and it is right/left of the center of the player
 
-                    System.out.println("Axis angle: " + smoothAngle + "°");
-
                     if (smoothAngle > -20 && smoothAngle < 80 && handPosition.getX() > (center.getX() + CENTER_THRESHOLD)) {
-                        currDirection = Direction.LEFT;//dirMovingAverage(Direction.LEFT);
+                        currDirection = Direction.LEFT;
                     } else if (smoothAngle > 100 && smoothAngle < 200 && handPosition.getX() < (center.getX() - CENTER_THRESHOLD)) {
-                        currDirection = Direction.RIGHT; //dirMovingAverage(Direction.RIGHT);
+                        currDirection = Direction.RIGHT;
                     } else currDirection = Direction.STRAIGHT;
 
                     //now send the current direction to the car, if it isn't the same as last time
