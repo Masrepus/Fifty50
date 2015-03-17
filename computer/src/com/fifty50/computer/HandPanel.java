@@ -38,7 +38,7 @@ public class HandPanel extends JPanel implements Runnable {
     private HandDetector detector = null;   // for detecting hand and fingers
     private GestureDetector gestureDetector;
 
-    private String extraMsg;
+    private String extraMsg = "";
     private boolean isCalibrated;
 
 
@@ -162,8 +162,6 @@ public class HandPanel extends JPanel implements Runnable {
             g2d.fillPolygon(new int[]{getWidth(), getWidth() - 20, getWidth() - 20}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
         }
 
-        writeStats(g2d);
-
         //paint a vertical line where the player has set his center point if calibration has been done already
         if (isCalibrated) {
             g2d.setColor(Color.RED);
@@ -177,12 +175,18 @@ public class HandPanel extends JPanel implements Runnable {
             //draw a horizontal area at the top of the brake area
             g2d.fillRect(0, HEIGHT - gestureDetector.getBrakeZoneHeight() - 10, WIDTH, 10);
         }
+
+        writeStats(g2d);
     } // end of paintComponent()
 
 
     private void writeStats(Graphics2D g2d)
   /* write statistics in bottom-left corner, or
      "Loading" at start time */ {
+        //first draw a white rectangle where the text will be written onto
+        g2d.setColor(Color.WHITE);
+        g2d.fillRect(0, HEIGHT - 30, WIDTH, 40);
+
         g2d.setColor(Color.BLUE);
         g2d.setFont(msgFont);
         if (imageCount > 0) {

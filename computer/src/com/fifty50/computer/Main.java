@@ -308,12 +308,12 @@ public class Main implements OnCalibrationFininshedListener {
                 if (count[0] < 3) {
                     //display a countdown message
                     count[0]++;
-                    handPanel.setExtraMsg("Kalibrieren in " + String.valueOf(3 - (count[0]/2)));
+                    handPanel.setExtraMsg("Kalibrieren in " + String.valueOf(2 - (count[0]/2)));
                 }
                 else {
                     //the calibration button was pressed, pass this to the gesture detector
-                    timer.cancel();
                     handPanel.setExtraMsg("Kalibrieren...");
+                    timer.cancel();
                     detector.calibrate(Main.this);
                 }
             }
@@ -322,7 +322,7 @@ public class Main implements OnCalibrationFininshedListener {
 
     @Override
     public void calibrationFinished(Point center) {
-        handPanel.setExtraMsg("Kalibrieren beendet. Mittelpunkt: (" + center.x + "/" + center.y + ")");
+        handPanel.setExtraMsg("Mittelpunkt: (" + center.x + "/" + center.y + ")");
         handPanel.setIsCalibrated(true);
     }
 
