@@ -19,6 +19,9 @@
  **/
 package com.charliemouse.cambozola.shared;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -34,9 +37,7 @@ public class AppID {
 			InputStream istr = this.getClass().getResourceAsStream("/application.properties");
 			m_props.load(istr);
 			istr.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		} catch (Exception ignored) {}
 	}
 
 

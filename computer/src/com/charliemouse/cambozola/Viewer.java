@@ -91,7 +91,7 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
     private Vector m_alternateURLs = null;
     private CamStream m_imgStream = null;
     private String m_msg = null;
-    private AppID m_props = null;
+    //private AppID m_props = null;
     private boolean m_displayAccessories = false;
     private int m_accessoryStyle = VAL_STYLE_INDENT;
     private PercentArea m_area = new PercentArea();
@@ -116,7 +116,7 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
 
     public Viewer()
     {
-        m_props = AppID.getAppID();
+        //m_props = AppID.getAppID();
         m_alternateURLs = new Vector();
         m_parameters = new Properties();
 
@@ -134,7 +134,7 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
         //
         // Init!
         //
-        m_props = AppID.getAppID();
+        //m_props = AppID.getAppID();
         m_alternateURLs = new Vector();
         //
         String wmarks = getParameterValue(PAR_WATERMARK);
@@ -220,7 +220,7 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
         if (userAgent != null && !userAgent.equals("") && !userAgent.equalsIgnoreCase("default")) {
             m_userAgent = userAgent;
         } else {
-            m_userAgent = m_props.getAppNameVersion() + "/Java " + System.getProperty("java.version") + " " + System.getProperty("java.vendor");
+            m_userAgent = "Fifty50"/*m_props.getAppNameVersion()*/ + "/Java " + System.getProperty("java.version") + " " + System.getProperty("java.vendor");
         }
         //
         // Pick up the camera profile (or default to all local if not)
