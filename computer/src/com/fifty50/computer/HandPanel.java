@@ -38,18 +38,22 @@ public class HandPanel extends JPanel implements Runnable {
     private String extraMsg = "";
     private boolean isCalibrated;
 
-    private int x, y;
+    private int x, y, width, height;
 
-    //TODO standardmäßig nur 640x480 kamerabild benutzen
     public HandPanel(int width, int height, int x, int y) {
         this.x = x;
         this.y = y;
+        this.width = width;
+        this.height = height;
         setBackground(Color.white);
         msgFont = new Font("SansSerif", Font.BOLD, 18);
         detector = new HandDetector("gloveHSV.txt", width, height, x, y);
         // include the HSV color info about the user's gloved hand
     } // end of HandPanel()
 
+    public int getRealHeight() {
+        return height;
+    }
 
     public void run()
   /* display the current webcam image every DELAY ms.
@@ -95,8 +99,8 @@ public class HandPanel extends JPanel implements Runnable {
         try {
             grabber = FrameGrabber.createDefault(ID);
             grabber.setFormat("dshow");       // using DirectShow
-            grabber.setImageWidth(getWidth());     // default is too small: 320x240
-            grabber.setImageHeight(getHeight());
+            grabber.setImageWidth(width);     // default is too small: 320x240
+            grabber.setImageHeight(height);
             grabber.start();
         } catch (Exception e) {
             System.out.println("Could not start grabber");
@@ -142,32 +146,32 @@ public class HandPanel extends JPanel implements Runnable {
             detector.draw(g2d);    // draws detected hand and finger info
 
         //paint a triangle pointing to the direction where the car is currently steering to
-        int centerVertical = getHeight() / 2;
+        int centerVertical = y + (height / 2);
 
         if (gestureDetector.getCurrDirection() == GestureDetector.Direction.LEFT) {
             g2d.setColor(Color.RED);
-            g2d.fillPolygon(new int[]{0, 20, 20}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+            g2d.fillPolygon(new int[]{x - 20, x, x}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
         } else if (gestureDetector.getCurrDirection() == GestureDetector.Direction.RIGHT) {
             g2d.setColor(Color.RED);
-            g2d.fillPolygon(new int[]{getWidth(), getWidth() - 20, getWidth() - 20}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+            g2d.fillPolygon(new int[]{x + width + 20, x + width, x + width}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
         } else {
             g2d.setColor(Color.BLUE);
-            g2d.fillPolygon(new int[]{0, 20, 20}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
-            g2d.fillPolygon(new int[]{getWidth(), getWidth() - 20, getWidth() - 20}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+            g2d.fillPolygon(new int[]{x - 20, x, x}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+            g2d.fillPolygon(new int[]{x +width + 20, x + width, x + width}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
         }
 
         //paint a vertical line where the player has set his center point if calibration has been done already
         if (isCalibrated) {
             g2d.setColor(Color.RED);
-            g2d.fillRect(gestureDetector.getCenter().x - 5, 0, 10, getHeight());
+            g2d.fillRect( x + gestureDetector.getCenter().x - 5, y, 10, height);
 
             //draw two lines at the ends of the threshold area
             g2d.setColor(Color.BLUE);
-            g2d.fillRect(gestureDetector.getCenter().x - GestureDetector.CENTER_THRESHOLD, 0, 1, getHeight());
-            g2d.fillRect(gestureDetector.getCenter().x + GestureDetector.CENTER_THRESHOLD, 0, 1, getHeight());
+            g2d.fillRect(x + gestureDetector.getCenter().x - GestureDetector.CENTER_THRESHOLD, y, 1, height);
+            g2d.fillRect(x + gestureDetector.getCenter().x + GestureDetector.CENTER_THRESHOLD, y, 1, height);
 
             //draw a horizontal area at the top of the brake area
-            g2d.fillRect(0, getHeight() - gestureDetector.getBrakeZoneHeight() - 10, getWidth(), 10);
+            g2d.fillRect(x , y + height - gestureDetector.getBrakeZoneHeight() - 10, width, 10);
         }
 
         writeStats(g2d);
@@ -179,17 +183,17 @@ public class HandPanel extends JPanel implements Runnable {
      "Loading" at start time */ {
         //first draw a white rectangle where the text will be written onto
         g2d.setColor(Color.WHITE);
-        g2d.fillRect(0, getHeight() - 30, getWidth(), 40);
+        g2d.fillRect(x, y + height - 50, width, 50);
 
         g2d.setColor(Color.BLUE);
         g2d.setFont(msgFont);
         if (imageCount > 0) {
             String statsMsg = String.format("Snap Avg. Time:  %.1f ms",
                     ((double) totalTime / imageCount));
-            g2d.drawString(statsMsg + ", Contour angle: " + gestureDetector.getSmoothAngle() + "°, " + "Fingers: " + gestureDetector.getFingerCount() + ", " + gestureDetector.getCurrSpeed() + ", " +gestureDetector.getCurrDirection() + "    " + extraMsg, 5, getHeight() - 10);
+            g2d.drawString(statsMsg + ", Contour angle: " + gestureDetector.getSmoothAngle() + "°, " + "Fingers: " + gestureDetector.getFingerCount() + ", " + gestureDetector.getCurrSpeed() + ", " +gestureDetector.getCurrDirection() + "    " + extraMsg, 5, y + height - 30);
             // write statistics in bottom-left corner
         } else  // no image yet
-            g2d.drawString("Loading...", 5, getHeight() - 10);
+            g2d.drawString("Loading...", 5, y + height - 30);
     }  // end of writeStats()
 
     public void setExtraMsg(String extraMsg) {

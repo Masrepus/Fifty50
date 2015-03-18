@@ -122,8 +122,8 @@ public class Main implements OnCalibrationFininshedListener {
         window.panel1.add(viewer);
 
         //init the gesture detection
-        HandPanel handPanel = new HandPanel(width, height / 2, 0, height / 2);
-        handPanel.setBounds(0, height / 2, width, height / 2);
+        HandPanel handPanel = new HandPanel(640, height / 2, 320, height / 2);
+        handPanel.setBounds(320, height / 2, width, height / 2);
         handPanel.setFocusable(true);
         handPanel.requestFocus();
         handPanel.addKeyListener(window);

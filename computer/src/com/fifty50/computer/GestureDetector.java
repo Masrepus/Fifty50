@@ -60,7 +60,7 @@ public class GestureDetector extends Thread {
                     smoothFingers = detector.getFingerTips().size();
 
                     //accelerate if there are fingers being shown, else brake
-                    if (smoothFingers == 0 || handPosition.y > (panel.getHeight() - brakeZoneHeight)) {
+                    if (smoothFingers == 0 || handPosition.y > (panel.getRealHeight() - brakeZoneHeight)) {
                         currSpeed = Speed.BRAKE;
                     } else currSpeed = Speed.ACCELERATE;
 
