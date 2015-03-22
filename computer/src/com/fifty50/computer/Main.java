@@ -21,8 +21,6 @@ public class Main implements OnCalibrationFininshedListener {
     private GestureDetector detector;
     private DataOutputStream out;
     private GameWindow window;
-    private Socket client;
-    private OutputStream outToServer;
     private HandPanel handPanel;
 
     public static void main(String[] args) {
@@ -42,7 +40,7 @@ public class Main implements OnCalibrationFininshedListener {
         int width = tk.getScreenSize().width;
         int height = tk.getScreenSize().height;
 
-        JFrame frame = new JFrame("GameWindow");
+        JFrame frame = new JFrame("Fifty50 Racing");
         window.panel1.setBounds(0, 0, width, height / 2);
         frame.add(window.panel1);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -196,7 +194,6 @@ public class Main implements OnCalibrationFininshedListener {
     public void brake() {
         try {
             out.writeUTF("");
-            window.changeCommandText("Bremsen");
         } catch (IOException e) {
             System.out.println("Fehler beim Senden des Befehls");
         }
@@ -221,7 +218,6 @@ public class Main implements OnCalibrationFininshedListener {
         try {
             //send the command to the car
             out.writeUTF(command);
-            window.changeCommandText("Befehl: " + command);
         } catch (IOException e) {
             System.out.println("Fehler beim Senden des Befehls " + command);
         }
@@ -246,7 +242,6 @@ public class Main implements OnCalibrationFininshedListener {
         try {
             //send the command to the car
             out.writeUTF(command);
-            window.changeCommandText("Befehl: " + command);
         } catch (IOException e) {
             System.out.println("Fehler beim Senden des Befehls " + command);
         }
@@ -271,7 +266,6 @@ public class Main implements OnCalibrationFininshedListener {
         try {
             //send the command to the car
             out.writeUTF(command);
-            window.changeCommandText("Befehl: " + command);
         } catch (IOException e) {
             System.out.println("Fehler beim Senden des Befehls " + command);
         }
@@ -296,7 +290,6 @@ public class Main implements OnCalibrationFininshedListener {
         try {
             //send the command to the car
             out.writeUTF(command);
-            window.changeCommandText("Befehl: " + command);
         } catch (IOException e) {
             System.out.println("Fehler beim Senden des Befehls " + command);
         }
@@ -352,10 +345,10 @@ public class Main implements OnCalibrationFininshedListener {
             while (!connected) {
                 try {
                     System.out.println("Verbinde mit " + serverName + " am Port " + port + "...");
-                    client = new Socket(serverName, port);
+                    Socket client = new Socket(serverName, port);
                     System.out.println("Verbunden mit " + client.getRemoteSocketAddress());
 
-                    outToServer = client.getOutputStream();
+                    OutputStream outToServer = client.getOutputStream();
                     out = new DataOutputStream(outToServer);
                     connected = true;
                 } catch (IOException e) {

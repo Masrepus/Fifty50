@@ -10,13 +10,8 @@ import java.awt.event.KeyListener;
  */
 public class GameWindow implements KeyListener {
     public JPanel panel1;
-    private JLabel commandLabel;
     private Main main;
-    public HandPanel handPanel;
 
-    public void changeCommandText(String text) {
-        commandLabel.setText(text);
-    }
 
     public void init(Main main) {
         this.main = main;
@@ -100,13 +95,6 @@ public class GameWindow implements KeyListener {
     private void $$$setupUI$$$() {
         panel1 = new JPanel();
         panel1.setLayout(new BorderLayout(0, 0));
-        final JLabel label1 = new JLabel();
-        label1.setFont(new Font(label1.getFont().getName(), Font.BOLD, 28));
-        label1.setText("Fifty50© Racing");
-        panel1.add(label1, BorderLayout.NORTH);
-        commandLabel = new JLabel();
-        commandLabel.setText("Label");
-        panel1.add(commandLabel, BorderLayout.CENTER);
     }
 
     /**

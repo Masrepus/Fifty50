@@ -150,212 +150,212 @@ public class CamStream extends Thread {
 	public void run()
 	{
 		StreamSplit ssplit;
-		try {
-            //
-			// Loop for a while until we either give up (hit m_retryCount), or
-			// get a connection.... Sleep inbetween.
-			//
-			String connectionError;
-			String ctype;
-			Hashtable headers;
-			int tryIndex = 0;
-			int retryCount = m_retryCount;
-			int retryDelay = m_retryDelay;
-			//
-			do {
-				//
-				// Keep track of how many times we tried.
-				//
-				tryIndex++;
 
-                if (m_debug)
-                {
-                    System.err.println("// Connection URL = " + m_stream);
-                }
+        //don't stop looping if there was an exception, just sleep a bit
+        while (isAlive()) {
+            try {
                 //
-                // Better method - access via URL Connection
+                // Loop for a while until we either give up (hit m_retryCount), or
+                // get a connection.... Sleep inbetween.
                 //
-                URLConnection conn = m_stream.openConnection();
-                if (m_docBase != null) {
-                    conn.setRequestProperty("Referer", m_docBase.toString());
-                }
-                conn.setRequestProperty("User-Agent", m_appName);
-                conn.setRequestProperty("Host", m_stream.getHost());
-                if (m_userpassEncoded != null) {
-                    conn.setRequestProperty("Authorization", "Basic " + m_userpassEncoded);
-                }
-                m_inputStream = new DataInputStream(new BufferedInputStream(conn.getInputStream()));
+                String connectionError;
+                String ctype;
+                Hashtable headers;
+                int tryIndex = 0;
+                int retryCount = m_retryCount;
+                int retryDelay = m_retryDelay;
                 //
-                // Read Headers for the main thing...
-                //
-                headers = StreamSplit.readHeaders(conn);
-                ssplit = new StreamSplit(m_inputStream);
-                //
-                if (m_debug)
-                {
-                    System.err.println("// Request sent; Main Response headers:");
-                    for (Enumeration enm = headers.keys();enm.hasMoreElements();)
-                    {
-                        String hkey = (String)enm.nextElement();
-                        System.err.println("//   " + hkey + " = " + headers.get(hkey));
-                    }
-                }
-                //
-				m_collecting = true;
-				//
-				// Work out the content type/boundary.
-				//
-				connectionError = null;
-				ctype = (String) headers.get("content-type");
-				if (ctype == null) {
-					connectionError = "No main content type";
-				} else if (ctype.indexOf("text") != -1) {
-					String response;
-                    //noinspection deprecation
-                    while ((response = m_inputStream.readLine()) != null) {
-						System.out.println(response);
-					}
-					connectionError = "Failed to connect to server (denied?)";
-				}
-				if (connectionError == null)
-				{
-					break; // Yay!! got one.
-				} else if (m_isDefunct) {
-					//
-					// Not wanted any more...
-					//
-					return;
-				} else {
-					//
-					// Wait a while before retrying...
-					//
-                    if (m_debug)
-                    {
-                        System.err.println("// Waiting for " + retryDelay + " ms");
-                    }
-					m_reporter.reportFailure(connectionError);
-					sleep(retryDelay);
-				}
-			} while (tryIndex < retryCount);
-			//
-			if (connectionError != null)
-			{
-				return;
-			}
-			//
-			// Boundary will always be something - '--' or '--foobar'
-            //
-			int bidx = ctype.indexOf("boundary=");
-			String boundary = StreamSplit.BOUNDARY_MARKER_PREFIX;
-			if (bidx != -1) {
-				boundary = ctype.substring(bidx + 9);
-				ctype = ctype.substring(0, bidx);
-                //
-                // Remove quotes around boundary string [if present]
-                //
-                if (boundary.startsWith("\"") && boundary.endsWith("\""))
-                {
-                    boundary = boundary.substring(1, boundary.length()-1);
-                }
-                if (!boundary.startsWith(StreamSplit.BOUNDARY_MARKER_PREFIX)) {
-					boundary = StreamSplit.BOUNDARY_MARKER_PREFIX + boundary;
-				}
-			}
-			//
-			// Now if we have a boundary, read up to that.
-			//
-			if (ctype.startsWith("multipart/x-mixed-replace")) {
-                if (m_debug)
-                {
-                    System.err.println("// Reading up to boundary");
-                }
-				ssplit.skipToBoundary(boundary);
-			}
+                do {
+                    //
+                    // Keep track of how many times we tried.
+                    //
+                    tryIndex++;
 
-			do {
-				if (m_collecting) {
-					//
-					// Now we have the real type...
-					//  More headers (for the part), then the object...
-					//
-					if (boundary != null) {
-						headers = ssplit.readHeaders();
+                    if (m_debug) {
+                        System.err.println("// Connection URL = " + m_stream);
+                    }
+                    //
+                    // Better method - access via URL Connection
+                    //
+                    URLConnection conn = m_stream.openConnection();
+                    if (m_docBase != null) {
+                        conn.setRequestProperty("Referer", m_docBase.toString());
+                    }
+                    conn.setRequestProperty("User-Agent", m_appName);
+                    conn.setRequestProperty("Host", m_stream.getHost());
+                    if (m_userpassEncoded != null) {
+                        conn.setRequestProperty("Authorization", "Basic " + m_userpassEncoded);
+                    }
+                    m_inputStream = new DataInputStream(new BufferedInputStream(conn.getInputStream()));
+                    //
+                    // Read Headers for the main thing...
+                    //
+                    headers = StreamSplit.readHeaders(conn);
+                    ssplit = new StreamSplit(m_inputStream);
+                    //
+                    if (m_debug) {
+                        System.err.println("// Request sent; Main Response headers:");
+                        for (Enumeration enm = headers.keys(); enm.hasMoreElements(); ) {
+                            String hkey = (String) enm.nextElement();
+                            System.err.println("//   " + hkey + " = " + headers.get(hkey));
+                        }
+                    }
+                    //
+                    m_collecting = true;
+                    //
+                    // Work out the content type/boundary.
+                    //
+                    connectionError = null;
+                    ctype = (String) headers.get("content-type");
+                    if (ctype == null) {
+                        connectionError = "No main content type";
+                    } else if (ctype.indexOf("text") != -1) {
+                        String response;
+                        //noinspection deprecation
+                        while ((response = m_inputStream.readLine()) != null) {
+                            System.out.println(response);
+                        }
+                        connectionError = "Failed to connect to server (denied?)";
+                    }
+                    if (connectionError == null) {
+                        break; // Yay!! got one.
+                    } else if (m_isDefunct) {
+                        //
+                        // Not wanted any more...
+                        //
+                        return;
+                    } else {
+                        //
+                        // Wait a while before retrying...
+                        //
                         if (m_debug) {
-                            System.err.println("// Chunk Headers recieved:");
-                            for (Enumeration enm = headers.keys();enm.hasMoreElements();)
-                            {
-                                String hkey = (String)enm.nextElement();
-                                System.err.println("//   " + hkey + " = " + headers.get(hkey));
+                            System.err.println("// Waiting for " + retryDelay + " ms");
+                        }
+                        m_reporter.reportFailure(connectionError);
+                        sleep(retryDelay);
+                    }
+                } while (tryIndex < retryCount);
+                //
+                if (connectionError != null) {
+                    return;
+                }
+                //
+                // Boundary will always be something - '--' or '--foobar'
+                //
+                int bidx = ctype.indexOf("boundary=");
+                String boundary = StreamSplit.BOUNDARY_MARKER_PREFIX;
+                if (bidx != -1) {
+                    boundary = ctype.substring(bidx + 9);
+                    ctype = ctype.substring(0, bidx);
+                    //
+                    // Remove quotes around boundary string [if present]
+                    //
+                    if (boundary.startsWith("\"") && boundary.endsWith("\"")) {
+                        boundary = boundary.substring(1, boundary.length() - 1);
+                    }
+                    if (!boundary.startsWith(StreamSplit.BOUNDARY_MARKER_PREFIX)) {
+                        boundary = StreamSplit.BOUNDARY_MARKER_PREFIX + boundary;
+                    }
+                }
+                //
+                // Now if we have a boundary, read up to that.
+                //
+                if (ctype.startsWith("multipart/x-mixed-replace")) {
+                    if (m_debug) {
+                        System.err.println("// Reading up to boundary");
+                    }
+                    ssplit.skipToBoundary(boundary);
+                }
+
+                do {
+                    if (m_collecting) {
+                        //
+                        // Now we have the real type...
+                        //  More headers (for the part), then the object...
+                        //
+                        if (boundary != null) {
+                            headers = ssplit.readHeaders();
+                            if (m_debug) {
+                                System.err.println("// Chunk Headers recieved:");
+                                for (Enumeration enm = headers.keys(); enm.hasMoreElements(); ) {
+                                    String hkey = (String) enm.nextElement();
+                                    System.err.println("//   " + hkey + " = " + headers.get(hkey));
+                                }
+                            }
+                            //
+                            // Are we at the end of the m_stream?
+                            //
+                            if (ssplit.isAtStreamEnd()) {
+                                break;
+                            }
+                            ctype = (String) headers.get("content-type");
+                            if (ctype == null) {
+                                throw new Exception("No part content type");
                             }
                         }
-						//
-						// Are we at the end of the m_stream?
-						//
-						if (ssplit.isAtStreamEnd()) {
-							break;
-						}
-						ctype = (String) headers.get("content-type");
-						if (ctype == null) {
-							throw new Exception("No part content type");
-						}
-					}
-					//
-					// Mixed Type -> just skip...
-					//
-					if (ctype.startsWith("multipart/x-mixed-replace")) {
-						//
-						// Skip
-						//
-						bidx = ctype.indexOf("boundary=");
-						boundary = ctype.substring(bidx + 9);
-						//
-                        if (m_debug) {
-                            System.err.println("// Skipping to boundary");
+                        //
+                        // Mixed Type -> just skip...
+                        //
+                        if (ctype.startsWith("multipart/x-mixed-replace")) {
+                            //
+                            // Skip
+                            //
+                            bidx = ctype.indexOf("boundary=");
+                            boundary = ctype.substring(bidx + 9);
+                            //
+                            if (m_debug) {
+                                System.err.println("// Skipping to boundary");
+                            }
+                            ssplit.skipToBoundary(boundary);
+                        } else {
+                            //
+                            // Something we want to keep...
+                            //
+                            if (m_debug) {
+                                System.err.println("// Reading to boundary");
+                            }
+                            byte[] img = ssplit.readToBoundary(boundary);
+                            if (img.length == 0) {
+                                break;
+                            }
+                            //
+                            // FPS counter.
+                            //
+                            if (m_imgidx > IMG_FLUFF_FACTOR && m_startTime == 0) {
+                                m_startTime = System.currentTimeMillis();
+                            }
+                            //
+                            // Update the image [fores events off]
+                            //
+                            updateImage(ctype, img);
                         }
-						ssplit.skipToBoundary(boundary);
-					} else {
-						//
-						// Something we want to keep...
-						//
-                        if (m_debug) {
-                            System.err.println("// Reading to boundary");
-                        }
-						byte[] img = ssplit.readToBoundary(boundary);
-						if (img.length == 0) {
-							break;
-						}
-						//
-						// FPS counter.
-						//
-						if (m_imgidx > IMG_FLUFF_FACTOR && m_startTime == 0) {
-							m_startTime = System.currentTimeMillis();
-						}
-						//
-						// Update the image [fores events off]
-						//
-						updateImage(ctype, img);
-					}
-				}
-				try {
-					Thread.sleep(20);
-				} catch (InterruptedException ignored) {
-				}
-			} while (!m_isDefunct);
-		} catch (Exception e) {
-            if (!m_collecting)
-            {
-                m_reporter.reportFailure(e.toString());
-            } else if (!m_isDefunct) {
-				m_reporter.reportError(e);
-			}
-		} finally {
-			unhook();
-		}
-		//
-		// At this point, the m_stream m_inputStream done
-		// [could dispplay a that's all folks - leaving it as it m_inputStream
-		//  will leave the last frame up]
-		//
+                    }
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException ignored) {
+                    }
+                } while (!m_isDefunct);
+            } catch (Exception e) {
+                if (!m_collecting) {
+                    m_reporter.reportFailure(e.toString());
+                } else if (!m_isDefunct) {
+                    m_reporter.reportError(e);
+                }
+                try {
+                    sleep(500);
+                } catch (InterruptedException ignored) {}
+            } finally {
+                unhook();
+                try {
+                    sleep(500);
+                } catch (InterruptedException ignored) {}
+            }
+            //
+            // At this point, the m_stream m_inputStream done
+            // [could dispplay a that's all folks - leaving it as it m_inputStream
+            //  will leave the last frame up]
+            //
+        }
 	}
 
 	private synchronized void updateImage(String ctype, byte[] img)

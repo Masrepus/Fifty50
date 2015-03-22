@@ -174,7 +174,7 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
             }
         }
         //
-        String delay = getParameterValue(PAR_DELAY);
+        /*String delay = getParameterValue(PAR_DELAY);
         if (delay != null && !delay.equals("")) {
             try {
                 int di = Integer.parseInt(delay);
@@ -182,11 +182,12 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
             } catch (Exception e) {
                 System.err.println("Unable to set retry delay");
             }
-        }
+        }*/
+        setRetryDelay(50);
         String debug = getParameterValue(PAR_DEBUG);
         m_debug = (debug != null && debug.equalsIgnoreCase("true"));
 
-        String retries = getParameterValue(PAR_RETRIES);
+        /*String retries = getParameterValue(PAR_RETRIES);
         if (retries != null && !retries.equals("")) {
             try {
                 int ri = Integer.parseInt(retries);
@@ -194,7 +195,8 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
             } catch (Exception e) {
                 System.err.println("Unable to set retry count");
             }
-        }
+        }*/
+        setRetryCount(100);
         //
         String appurl = getParameterValue(PAR_URL);
         if (appurl == null && !appurl.equals("")) {
@@ -262,9 +264,9 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
         configureAccessories(getParameterValue(PAR_ACCESSORIES));
         //
         setBackground(Color.white);
-        addMouseListener(this);
-        addMouseMotionListener(this);
-        addKeyListener(this);
+        //addMouseListener(this);
+        //addMouseMotionListener(this);
+        //addKeyListener(this);
     }
 
     public void destroy()
@@ -448,21 +450,22 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
     public synchronized void reportError(Throwable t)
     {
         reportNote(t.getMessage());
-        m_loadFailure = true;
-        stop();
+        //m_loadFailure = true;
+        //stop();
     }
 
     public synchronized void reportFailure(String s)
     {
-        m_loadFailure = true;
+        //m_loadFailure = true;
         reportNote(s);
     }
 
     public synchronized void reportNote(String s)
     {
-        System.err.println(s);
-        setMessage(s);
-        m_readingStream = false;
+        //System.err.println(s);
+        if (s.contains("Exception"))setMessage("Fehler beim Verbinden zum Auto: " + s.split(":")[s.split(":").length-1]);
+        else setMessage(s);
+        //m_readingStream = false;
         repaint();
     }
 
@@ -914,5 +917,9 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
         System.out.println(" -profile={Camera Profile}   Choose profile for camera");
         System.out.println(" -watermark={see below}      List of watermarks, separated by '|'");
         System.out.println("   imageURL|corner|linkURL     Watermark information, separated by '|'");
+    }
+
+    public boolean hasError() {
+        return (m_msg != null) && m_msg.contains("Exception");
     }
 }

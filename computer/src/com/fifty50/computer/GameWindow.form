@@ -6,20 +6,6 @@
     </constraints>
     <properties/>
     <border type="none"/>
-    <children>
-      <component id="dd203" class="javax.swing.JLabel">
-        <constraints border-constraint="North"/>
-        <properties>
-          <font size="28" style="1"/>
-          <text value="Fifty50© Racing"/>
-        </properties>
-      </component>
-      <component id="ac65f" class="javax.swing.JLabel" binding="commandLabel">
-        <constraints border-constraint="Center"/>
-        <properties>
-          <text value="Label"/>
-        </properties>
-      </component>
-    </children>
+    <children/>
   </grid>
 </form>
