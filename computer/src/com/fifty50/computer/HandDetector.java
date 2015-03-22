@@ -67,10 +67,11 @@ public class HandDetector {
     // finger identifications
     private ArrayList<FingerName> namedFingers;
 
-    private int x, y;
+    private int x, y, width;
 
 
     public HandDetector(String hsvFnm, int width, int height, int x, int y) {
+        this.width = width;
         scaleImg = IplImage.create(width / IMG_SCALE, height / IMG_SCALE, 8, 3);
         hsvImg = IplImage.create(width / IMG_SCALE, height / IMG_SCALE, 8, 3);     // for the HSV image
         imgThreshed = IplImage.create(width / IMG_SCALE, height / IMG_SCALE, 8, 1);   // threshold image
@@ -532,25 +533,37 @@ public class HandDetector {
 
         // label the finger tips in red or green, and draw COG lines to named tips
         g2d.setFont(msgFont);
+
+        int cogPtX_flipped;
+
+        if (cogPt.x < (width / 2)) cogPtX_flipped = cogPt.x + (((width / 2) - cogPt.x) * 2);
+        else cogPtX_flipped = cogPt.x - ((cogPt.x - (width / 2)) * 2);
+
         for (int i = 0; i < fingerTips.size(); i++) {
             Point pt = fingerTips.get(i);
+            int ptX_flipped;
+            //handle the flipped image
+            if (pt.x < (width / 2)) ptX_flipped = pt.x + (((width / 2) - pt.x) * 2);
+            else ptX_flipped = pt.x - ((pt.x - (width / 2)) * 2);
+
             if (namedFingers.get(i) == FingerName.UNBEKANNT) {
                 g2d.setPaint(Color.RED);   // unnamed finger tip is red
-                g2d.drawOval(pt.x - 8 + x, pt.y - 8 + y, 16, 16);
-                g2d.drawString("" + i, pt.x + x, pt.y - 10 + y);   // label it with a digit
+                g2d.drawOval(ptX_flipped - 8 + x, pt.y - 8 + y, 16, 16);
+                g2d.drawString("" + i, ptX_flipped + x, pt.y - 10 + y);   // label it with a digit
             } else {   // draw yellow line to the named finger tip from COG
                 g2d.setPaint(Color.YELLOW);
-                g2d.drawLine(cogPt.x + x, cogPt.y + y, pt.x + x, pt.y + y);
+                g2d.drawLine(cogPtX_flipped + x, cogPt.y + y, ptX_flipped + x, pt.y + y);
 
                 g2d.setPaint(Color.GREEN);   // named finger tip is green
-                g2d.drawOval(pt.x - 8 + x, pt.y - 8 + y, 16, 16);
-                g2d.drawString(namedFingers.get(i).toString().toLowerCase(), pt.x + x, pt.y - 10 + y);
+                g2d.drawOval(ptX_flipped - 8 + x, pt.y - 8 + y, 16, 16);
+
+                g2d.drawString(namedFingers.get(i).toString().toLowerCase(), ptX_flipped + x, pt.y - 10 + y);
             }
         }
 
         // draw COG
         g2d.setPaint(Color.GREEN);
-        g2d.fillOval(cogPt.x - 8 + x, cogPt.y - 8 + y, 16, 16);
+        g2d.fillOval(cogPtX_flipped - 8 + x, cogPt.y - 8 + y, 16, 16);
     }  // end of draw()
 
 

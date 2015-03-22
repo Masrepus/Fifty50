@@ -12,6 +12,7 @@ import com.googlecode.javacv.FrameGrabber;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 
 import static com.googlecode.javacv.cpp.opencv_core.IplImage;
 
@@ -139,19 +140,23 @@ public class HandPanel extends JPanel implements Runnable {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
 
+        //flip the canvas
+        AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
+        tx.translate(-width, 0);
+        g2d.transform(tx);
+
+        int x = this.x - width;
+
         if (snapIm != null)
             g2d.drawImage(snapIm.getBufferedImage(), x, y, this);
-
-        if (detector != null)
-            detector.draw(g2d);    // draws detected hand and finger info
 
         //paint a triangle pointing to the direction where the car is currently steering to
         int centerVertical = y + (height / 2);
 
-        if (gestureDetector.getCurrDirection() == GestureDetector.Direction.LEFT) {
+        if (gestureDetector.getCurrDirection() == GestureDetector.Direction.RIGHT) { //image flipped!
             g2d.setColor(Color.RED);
             g2d.fillPolygon(new int[]{x - 20, x, x}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
-        } else if (gestureDetector.getCurrDirection() == GestureDetector.Direction.RIGHT) {
+        } else if (gestureDetector.getCurrDirection() == GestureDetector.Direction.LEFT) {
             g2d.setColor(Color.RED);
             g2d.fillPolygon(new int[]{x + width + 20, x + width, x + width}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
         } else {
@@ -170,9 +175,15 @@ public class HandPanel extends JPanel implements Runnable {
             g2d.fillRect(x + gestureDetector.getCenter().x - GestureDetector.CENTER_THRESHOLD, y, 1, height);
             g2d.fillRect(x + gestureDetector.getCenter().x + GestureDetector.CENTER_THRESHOLD, y, 1, height);
 
-            //draw a horizontal area at the top of the brake area
+            //draw a horizontal line at the top of the brake area
             g2d.fillRect(x , y + height - gestureDetector.getBrakeZoneHeight() - 10, width, 10);
         }
+
+        //now reset it to normal orientation
+        g2d.transform(tx);
+
+        if (detector != null)
+            detector.draw(g2d);    // draws detected hand and finger info
 
         writeStats(g2d);
     } // end of paintComponent()
