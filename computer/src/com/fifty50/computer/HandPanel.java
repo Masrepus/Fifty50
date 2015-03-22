@@ -41,14 +41,14 @@ public class HandPanel extends JPanel implements Runnable {
 
     private int x, y, width, height;
 
-    public HandPanel(int width, int height, int x, int y) {
+    public HandPanel(String hsvPath, int width, int height, int x, int y) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
         setBackground(Color.white);
         msgFont = new Font("SansSerif", Font.BOLD, 18);
-        detector = new HandDetector("gloveHSV.txt", width, height, x, y);
+        detector = new HandDetector(hsvPath, width, height, x, y);
         // include the HSV color info about the user's gloved hand
     } // end of HandPanel()
 

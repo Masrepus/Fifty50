@@ -29,9 +29,16 @@ public class Main implements OnCalibrationFininshedListener {
         try {
             main = new Main();
         } catch (Exception e) {
-            System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream");
+            System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream, Pfad zur .txt Datei mit HSV-Werten zur Handschuherkennung");
             System.exit(1);
         }
+
+        if (args.length < 4) {
+            System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream, Pfad zur .txt Datei mit HSV-Werten zur Handschuherkennung");
+            System.exit(1);
+        }
+
+        String hsvPath = args[3];
 
         GameWindow window = new GameWindow();
         window.init(main);
@@ -120,7 +127,7 @@ public class Main implements OnCalibrationFininshedListener {
         window.panel1.add(viewer);
 
         //init the gesture detection
-        HandPanel handPanel = new HandPanel(640, height / 2, 320, height / 2);
+        HandPanel handPanel = new HandPanel(hsvPath, 640, height / 2, 320, height / 2);
         handPanel.setBounds(320, height / 2, width, height / 2);
         handPanel.setFocusable(true);
         handPanel.requestFocus();

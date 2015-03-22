@@ -70,7 +70,7 @@ public class HandDetector {
     private int x, y, width;
 
 
-    public HandDetector(String hsvFnm, int width, int height, int x, int y) {
+    public HandDetector(String hsvPath, int width, int height, int x, int y) {
         this.width = width;
         scaleImg = IplImage.create(width / IMG_SCALE, height / IMG_SCALE, 8, 3);
         hsvImg = IplImage.create(width / IMG_SCALE, height / IMG_SCALE, 8, 3);     // for the HSV image
@@ -92,7 +92,7 @@ public class HandDetector {
         foldPts = new Point[MAX_POINTS];  // coords of the skin folds between fingers
         depths = new float[MAX_POINTS];   // distances from tips to folds
 
-        setHSVRanges(hsvFnm);
+        setHSVRanges(hsvPath);
 
         this.x = x;
         this.y = y;
@@ -104,7 +104,7 @@ public class HandDetector {
      These were previously stored using the HSV Selector application 
      (see NUI chapter 5 on blobs drumming). */ {
         try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/samuel/gloveHSV.txt"))));
+            BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(new File(fnm))));
             //BufferedReader in = new BufferedReader(new FileReader(fnm));
             String line = in.readLine();   // get hues
             String[] toks = line.split("\\s+");
