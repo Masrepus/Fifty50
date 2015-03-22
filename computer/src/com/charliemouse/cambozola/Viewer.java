@@ -109,7 +109,7 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
     private int m_imgWidth = 0;
     private int m_imgHeight = 0;
     private boolean m_showCopyright = true;
-    private Color m_backgroundColor = Color.white;
+    private Color m_backgroundColor = Color.BLACK;
     private Color m_textColor = Color.black;
     private String m_userAgent = null;
     private ICameraProfile m_profile = null;

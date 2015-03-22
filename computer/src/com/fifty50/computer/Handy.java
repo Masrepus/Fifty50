@@ -32,7 +32,7 @@ public class Handy extends JFrame {
         // Preload the opencv_objdetect module to work around a known bug.
         Loader.load(opencv_objdetect.class);
 
-        handPanel = new HandPanel("", getWidth(), getHeight(), 0, 0); // the webcam pictures and drums appear here
+        handPanel = new HandPanel("", getWidth(), getHeight(), 0, 0, false); // the webcam pictures and drums appear here
         c.add(handPanel, BorderLayout.CENTER);
 
         addWindowListener(new WindowAdapter() {

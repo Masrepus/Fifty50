@@ -557,7 +557,8 @@ public class HandDetector {
                 g2d.setPaint(Color.GREEN);   // named finger tip is green
                 g2d.drawOval(ptX_flipped - 8 + x, pt.y - 8 + y, 16, 16);
 
-                g2d.drawString(namedFingers.get(i).toString().toLowerCase(), ptX_flipped + x, pt.y - 10 + y);
+                //don't draw finger names
+                //g2d.drawString(namedFingers.get(i).toString().toLowerCase(), ptX_flipped + x, pt.y - 10 + y);
             }
         }
 

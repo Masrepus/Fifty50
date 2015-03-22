@@ -29,16 +29,18 @@ public class Main implements OnCalibrationFininshedListener {
         try {
             main = new Main();
         } catch (Exception e) {
-            System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream, Pfad zur .txt Datei mit HSV-Werten zur Handschuherkennung");
+            System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream, Pfad zur .txt Datei mit HSV-Werten zur Handschuherkennung, [debug: 'true' oder 'false']");
             System.exit(1);
         }
 
         if (args.length < 4) {
-            System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream, Pfad zur .txt Datei mit HSV-Werten zur Handschuherkennung");
+            System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream, Pfad zur .txt Datei mit HSV-Werten zur Handschuherkennung, [debug: 'true' oder 'false']");
             System.exit(1);
         }
 
         String hsvPath = args[3];
+        boolean debug = false;
+        if (args.length == 5) debug = Boolean.parseBoolean(args[4]);
 
         GameWindow window = new GameWindow();
         window.init(main);
@@ -78,7 +80,7 @@ public class Main implements OnCalibrationFininshedListener {
 
         //create a new instance of the cambozola mjpg player applet for the live stream
         final String url = args[2];
-        Viewer viewer = new Viewer(width, height / 2);
+        Viewer viewer = new Viewer(width, height / 2 - 5);
         AppletStub stub = new AppletStub() {
             @Override
             public boolean isActive() {
@@ -127,8 +129,8 @@ public class Main implements OnCalibrationFininshedListener {
         window.panel1.add(viewer);
 
         //init the gesture detection
-        HandPanel handPanel = new HandPanel(hsvPath, 640, height / 2, 320, height / 2);
-        handPanel.setBounds(320, height / 2, width, height / 2);
+        HandPanel handPanel = new HandPanel(hsvPath, 640, height / 2 -5, 320, height / 2 + 5, debug);
+        handPanel.setBounds(320, height / 2 + 5, width, height / 2 - 5);
         handPanel.setFocusable(true);
         handPanel.requestFocus();
         handPanel.addKeyListener(window);
@@ -327,7 +329,8 @@ public class Main implements OnCalibrationFininshedListener {
 
     @Override
     public void calibrationFinished(Point center) {
-        handPanel.setExtraMsg("Mittelpunkt: (" + center.x + "/" + center.y + ")");
+        //handPanel.setExtraMsg("Mittelpunkt: (" + center.x + "/" + center.y + ")");
+        handPanel.setExtraMsg("");
         handPanel.setIsCalibrated(true);
     }
 

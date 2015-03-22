@@ -41,11 +41,15 @@ public class HandPanel extends JPanel implements Runnable {
 
     private int x, y, width, height;
 
-    public HandPanel(String hsvPath, int width, int height, int x, int y) {
+    private boolean debug;
+
+    public HandPanel(String hsvPath, int width, int height, int x, int y, boolean debug) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+        this.debug = debug;
+
         setBackground(Color.white);
         msgFont = new Font("SansSerif", Font.BOLD, 18);
         detector = new HandDetector(hsvPath, width, height, x, y);
@@ -155,14 +159,14 @@ public class HandPanel extends JPanel implements Runnable {
 
         if (gestureDetector.getCurrDirection() == GestureDetector.Direction.RIGHT) { //image flipped!
             g2d.setColor(Color.RED);
-            g2d.fillPolygon(new int[]{x - 20, x, x}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+            g2d.fillPolygon(new int[]{x - 30, x - 10, x - 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
         } else if (gestureDetector.getCurrDirection() == GestureDetector.Direction.LEFT) {
             g2d.setColor(Color.RED);
-            g2d.fillPolygon(new int[]{x + width + 20, x + width, x + width}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+            g2d.fillPolygon(new int[]{x + width + 30, x + width + 10, x + width + 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
         } else {
-            g2d.setColor(Color.BLUE);
-            g2d.fillPolygon(new int[]{x - 20, x, x}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
-            g2d.fillPolygon(new int[]{x +width + 20, x + width, x + width}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+            g2d.setColor(Color.WHITE);
+            g2d.fillPolygon(new int[]{x - 30, x - 10, x - 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+            g2d.fillPolygon(new int[]{x + width + 30, x + width + 10, x + width + 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
         }
 
         //paint a vertical line where the player has set his center point if calibration has been done already
@@ -177,6 +181,8 @@ public class HandPanel extends JPanel implements Runnable {
 
             //draw a horizontal line at the top of the brake area
             g2d.fillRect(x , y + height - gestureDetector.getBrakeZoneHeight() - 10, width, 10);
+        } else {
+            if (extraMsg.isEmpty()) extraMsg = "Drücke ENTER zum Kalibrieren";
         }
 
         //now reset it to normal orientation
@@ -185,7 +191,19 @@ public class HandPanel extends JPanel implements Runnable {
         if (detector != null)
             detector.draw(g2d);    // draws detected hand and finger info
 
-        writeStats(g2d);
+        if (debug) writeStats(g2d); //write verbose stats if debug mode is active
+
+        if (!extraMsg.isEmpty()) {
+            g2d.setFont(msgFont);
+            int stringLen = (int) g2d.getFontMetrics().getStringBounds(extraMsg, g2d).getWidth();
+            int start = width/2 - stringLen/2;
+
+            g2d.setColor(Color.WHITE);
+            g2d.fillRect(this.x + start - 5, y + height - 50, stringLen + 5, 50);
+
+            g2d.setColor(Color.BLUE);
+            g2d.drawString(extraMsg, start + this.x, y + height - 30);
+        }
     } // end of paintComponent()
 
 
