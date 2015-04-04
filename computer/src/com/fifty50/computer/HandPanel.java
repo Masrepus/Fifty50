@@ -266,5 +266,9 @@ public class HandPanel extends JPanel implements Runnable {
     public void setIsCalibrated(boolean isCalibrated) {
         this.isCalibrated = isCalibrated;
     }
+
+    public boolean isFinished() {
+        return isFinished;
+    }
 } // end of HandPanel class
 
