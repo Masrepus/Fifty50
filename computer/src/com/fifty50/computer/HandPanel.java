@@ -22,6 +22,7 @@ public class HandPanel extends JPanel implements Runnable {
     private static final int DELAY = 100;  // time (ms) between redraws of the panel
 
     private static final int CAMERA_ID = 0;
+    private boolean drawCOGOnly;
 
 
     private IplImage snapIm = null;
@@ -43,14 +44,15 @@ public class HandPanel extends JPanel implements Runnable {
 
     private boolean debug;
 
-    public HandPanel(String hsvPath, int width, int height, int x, int y, boolean debug) {
+    public HandPanel(String hsvPath, int width, int height, int x, int y, boolean debug, boolean drawCOGOnly, Color background) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
         this.debug = debug;
+        this.drawCOGOnly = drawCOGOnly;
 
-        setBackground(Color.white);
+        setBackground(background);
         msgFont = new Font("SansSerif", Font.BOLD, 18);
         detector = new HandDetector(hsvPath, width, height, x, y);
         // include the HSV color info about the user's gloved hand
@@ -151,58 +153,64 @@ public class HandPanel extends JPanel implements Runnable {
 
         int x = this.x - width;
 
-        if (snapIm != null)
+        //if requested, draw the image that was snapped as well
+        if (snapIm != null && !drawCOGOnly)
             g2d.drawImage(snapIm.getBufferedImage(), x, y, this);
 
         //paint a triangle pointing to the direction where the car is currently steering to
         int centerVertical = y + (height / 2);
 
-        if (gestureDetector.getCurrDirection() == GestureDetector.Direction.RIGHT) { //image flipped!
-            g2d.setColor(Color.RED);
-            g2d.fillPolygon(new int[]{x - 30, x - 10, x - 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
-        } else if (gestureDetector.getCurrDirection() == GestureDetector.Direction.LEFT) {
-            g2d.setColor(Color.RED);
-            g2d.fillPolygon(new int[]{x + width + 30, x + width + 10, x + width + 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
-        } else {
-            g2d.setColor(Color.WHITE);
-            g2d.fillPolygon(new int[]{x - 30, x - 10, x - 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
-            g2d.fillPolygon(new int[]{x + width + 30, x + width + 10, x + width + 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
-        }
+        //if only the cog should be drawn, skip this section
+        if (!drawCOGOnly) {
+            if (gestureDetector.getCurrDirection() == GestureDetector.Direction.RIGHT) { //image flipped!
+                g2d.setColor(Color.RED);
+                g2d.fillPolygon(new int[]{x - 30, x - 10, x - 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+            } else if (gestureDetector.getCurrDirection() == GestureDetector.Direction.LEFT) {
+                g2d.setColor(Color.RED);
+                g2d.fillPolygon(new int[]{x + width + 30, x + width + 10, x + width + 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+            } else {
+                g2d.setColor(Color.WHITE);
+                g2d.fillPolygon(new int[]{x - 30, x - 10, x - 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+                g2d.fillPolygon(new int[]{x + width + 30, x + width + 10, x + width + 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+            }
 
-        //paint a vertical line where the player has set his center point if calibration has been done already
-        if (isCalibrated) {
-            g2d.setColor(Color.RED);
-            g2d.fillRect( x + gestureDetector.getCenter().x - 5, y, 10, height);
+            //paint a vertical line where the player has set his center point if calibration has been done already
+            if (isCalibrated) {
+                g2d.setColor(Color.RED);
+                g2d.fillRect(x + gestureDetector.getCenter().x - 5, y, 10, height);
 
-            //draw two lines at the ends of the threshold area
-            g2d.setColor(Color.BLUE);
-            g2d.fillRect(x + gestureDetector.getCenter().x - GestureDetector.CENTER_THRESHOLD, y, 1, height);
-            g2d.fillRect(x + gestureDetector.getCenter().x + GestureDetector.CENTER_THRESHOLD, y, 1, height);
+                //draw two lines at the ends of the threshold area
+                g2d.setColor(Color.BLUE);
+                g2d.fillRect(x + gestureDetector.getCenter().x - GestureDetector.CENTER_THRESHOLD, y, 1, height);
+                g2d.fillRect(x + gestureDetector.getCenter().x + GestureDetector.CENTER_THRESHOLD, y, 1, height);
 
-            //draw a horizontal line at the top of the brake area
-            g2d.fillRect(x , y + height - gestureDetector.getBrakeZoneHeight() - 10, width, 10);
-        } else {
-            if (extraMsg.isEmpty()) extraMsg = "Drücke ENTER zum Kalibrieren";
+                //draw a horizontal line at the top of the brake area
+                g2d.fillRect(x, y + height - gestureDetector.getBrakeZoneHeight() - 10, width, 10);
+            } else {
+                if (extraMsg.isEmpty()) extraMsg = "Drücke ENTER zum Kalibrieren";
+            }
         }
 
         //now reset it to normal orientation
         g2d.transform(tx);
 
         if (detector != null)
-            detector.draw(g2d);    // draws detected hand and finger info
+            detector.draw(g2d, drawCOGOnly);    // draws detected hand and finger info
 
-        if (debug) writeStats(g2d); //write verbose stats if debug mode is active
+        if (!drawCOGOnly) {
+            if (debug) writeStats(g2d); //write verbose stats if debug mode is active
 
-        if (!extraMsg.isEmpty()) {
-            g2d.setFont(msgFont);
-            int stringLen = (int) g2d.getFontMetrics().getStringBounds(extraMsg, g2d).getWidth();
-            int start = width/2 - stringLen/2;
+            if (!extraMsg.isEmpty()) {
+                g2d.setFont(msgFont);
+                int stringLen = (int) g2d.getFontMetrics().getStringBounds(extraMsg, g2d).getWidth();
+                int start = width / 2 - stringLen / 2;
 
-            g2d.setColor(Color.WHITE);
-            g2d.fillRect(this.x + start - 5, y + height - 50, stringLen + 5, 50);
+                g2d.setColor(Color.WHITE);
+                g2d.fillRect(this.x + start - 5, y + height - 50, stringLen + 5, 50);
 
-            g2d.setColor(Color.BLUE);
-            g2d.drawString(extraMsg, start + this.x, y + height - 30);
+                g2d.setColor(Color.BLUE);
+                g2d.drawString(extraMsg, start + this.x, y + height - 30);
+            }
         }
     } // end of paintComponent()
 

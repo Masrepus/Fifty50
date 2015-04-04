@@ -520,7 +520,7 @@ public class HandDetector {
 
     // --------------------------- drawing ----------------------------------
 
-    public void draw(Graphics2D g2d)
+    public void draw(Graphics2D g2d, boolean drawCOGOnly)
     // draw information about the finger tips and the hand COG
     {
         if (fingerTips.size() == 0)
@@ -539,26 +539,29 @@ public class HandDetector {
         if (cogPt.x < (width / 2)) cogPtX_flipped = cogPt.x + (((width / 2) - cogPt.x) * 2);
         else cogPtX_flipped = cogPt.x - ((cogPt.x - (width / 2)) * 2);
 
-        for (int i = 0; i < fingerTips.size(); i++) {
-            Point pt = fingerTips.get(i);
-            int ptX_flipped;
-            //handle the flipped image
-            if (pt.x < (width / 2)) ptX_flipped = pt.x + (((width / 2) - pt.x) * 2);
-            else ptX_flipped = pt.x - ((pt.x - (width / 2)) * 2);
+        //skip this if requested
+        if (!drawCOGOnly) {
+            for (int i = 0; i < fingerTips.size(); i++) {
+                Point pt = fingerTips.get(i);
+                int ptX_flipped;
+                //handle the flipped image
+                if (pt.x < (width / 2)) ptX_flipped = pt.x + (((width / 2) - pt.x) * 2);
+                else ptX_flipped = pt.x - ((pt.x - (width / 2)) * 2);
 
-            if (namedFingers.get(i) == FingerName.UNBEKANNT) {
-                g2d.setPaint(Color.RED);   // unnamed finger tip is red
-                g2d.drawOval(ptX_flipped - 8 + x, pt.y - 8 + y, 16, 16);
-                g2d.drawString("" + i, ptX_flipped + x, pt.y - 10 + y);   // label it with a digit
-            } else {   // draw yellow line to the named finger tip from COG
-                g2d.setPaint(Color.YELLOW);
-                g2d.drawLine(cogPtX_flipped + x, cogPt.y + y, ptX_flipped + x, pt.y + y);
+                if (namedFingers.get(i) == FingerName.UNBEKANNT) {
+                    g2d.setPaint(Color.RED);   // unnamed finger tip is red
+                    g2d.drawOval(ptX_flipped - 8 + x, pt.y - 8 + y, 16, 16);
+                    g2d.drawString("" + i, ptX_flipped + x, pt.y - 10 + y);   // label it with a digit
+                } else {   // draw yellow line to the named finger tip from COG
+                    g2d.setPaint(Color.YELLOW);
+                    g2d.drawLine(cogPtX_flipped + x, cogPt.y + y, ptX_flipped + x, pt.y + y);
 
-                g2d.setPaint(Color.GREEN);   // named finger tip is green
-                g2d.drawOval(ptX_flipped - 8 + x, pt.y - 8 + y, 16, 16);
+                    g2d.setPaint(Color.GREEN);   // named finger tip is green
+                    g2d.drawOval(ptX_flipped - 8 + x, pt.y - 8 + y, 16, 16);
 
-                //don't draw finger names
-                //g2d.drawString(namedFingers.get(i).toString().toLowerCase(), ptX_flipped + x, pt.y - 10 + y);
+                    //don't draw finger names
+                    //g2d.drawString(namedFingers.get(i).toString().toLowerCase(), ptX_flipped + x, pt.y - 10 + y);
+                }
             }
         }
 
@@ -582,6 +585,15 @@ public class HandDetector {
 
     public int getContourAxisAngle() {
         return contourAxisAngle;
+    }
+
+    public Point getCogFlipped() {
+        //calculate the cog x coordinate to be used with a flipped image
+        int x;
+        if (cogPt.x < (width / 2)) x = cogPt.x + (((width / 2) - cogPt.x) * 2);
+        else x = cogPt.x - ((cogPt.x - (width / 2)) * 2);
+
+        return new Point(x, cogPt.y);
     }
 
 }  // end of HandDetector class
