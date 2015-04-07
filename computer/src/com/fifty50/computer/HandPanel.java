@@ -19,9 +19,11 @@ import static com.googlecode.javacv.cpp.opencv_core.IplImage;
 
 public class HandPanel extends JPanel implements Runnable {
 
-    private static final int DELAY = 100;  // time (ms) between redraws of the panel
+    public static final int DELAY_DEFAULT = 100;  // time (ms) between redraws of the panel
+    public static final int DELAY_HIGH_FREQ = 15;
 
     private static final int CAMERA_ID = 0;
+
     private boolean drawCOGOnly;
 
 
@@ -44,6 +46,8 @@ public class HandPanel extends JPanel implements Runnable {
 
     private boolean debug;
 
+    private int delay;
+
     public HandPanel(String hsvPath, int width, int height, int x, int y, boolean debug, boolean drawCOGOnly, Color background) {
         this.x = x;
         this.y = y;
@@ -51,6 +55,9 @@ public class HandPanel extends JPanel implements Runnable {
         this.height = height;
         this.debug = debug;
         this.drawCOGOnly = drawCOGOnly;
+
+        if (drawCOGOnly) delay = DELAY_HIGH_FREQ;
+        else delay = DELAY_DEFAULT;
 
         setBackground(background);
         msgFont = new Font("SansSerif", Font.BOLD, 18);
@@ -87,9 +94,9 @@ public class HandPanel extends JPanel implements Runnable {
 
             duration = System.currentTimeMillis() - startTime;
             totalTime += duration;
-            if (duration < DELAY) {
+            if (duration < delay) {
                 try {
-                    Thread.sleep(DELAY - duration);  // wait until DELAY time has passed
+                    Thread.sleep(delay - duration);  // wait until DELAY time has passed
                 } catch (Exception ex) {
                 }
             }
@@ -246,7 +253,7 @@ public class HandPanel extends JPanel implements Runnable {
         isRunning = false;
         while (!isFinished) {
             try {
-                Thread.sleep(DELAY);
+                Thread.sleep(delay);
             } catch (Exception ex) {
             }
         }

@@ -142,6 +142,10 @@ public class Main implements OnCalibrationFininshedListener {
 
         frame.add(handPanel);
 
+        //go fullscreen
+        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0];
+        device.setFullScreenWindow(frame);
+
         //everything is ready, show the jframe
         frame.pack();
         frame.setVisible(true);

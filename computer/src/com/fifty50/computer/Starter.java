@@ -1,9 +1,12 @@
 package com.fifty50.computer;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.Timer;
 
@@ -12,14 +15,9 @@ import java.util.Timer;
  */
 public class Starter extends JFrame implements Runnable, ActionListener {
 
-    private static final int COG_SMOOTHING_VALUE = 1;
-    private static final int DELAY = 20;
-
     private HandDetector detector;
     private JButton start;
     private HandPanel handPanel;
-    private int cogSmoothX = 0;
-    private int cogSmoothY = 0;
     private java.util.Timer timer = new Timer();
     private int timerIteration = 0;
     private boolean timerRunning = false;
@@ -43,13 +41,13 @@ public class Starter extends JFrame implements Runnable, ActionListener {
         int width = tk.getScreenSize().width;
         int height = tk.getScreenSize().height;
 
-        setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setExtendedState(getExtendedState()|MAXIMIZED_BOTH);
 
         ImageIcon icon = new ImageIcon("/home/samuel/fifty50/start.png");
         start = new JButton(icon);
         //put the start button in the center of the screen
-        start.setBounds(width/2 - icon.getIconWidth()/2, height/2 - icon.getIconHeight()/2, icon.getIconWidth(), icon.getIconHeight());
+        start.setBounds(width / 2 - icon.getIconWidth() / 2, height / 2 - icon.getIconHeight() / 2, icon.getIconWidth(), icon.getIconHeight());
         start.setContentAreaFilled(false);
         start.setBorderPainted(false);
         start.setOpaque(false);
@@ -66,13 +64,26 @@ public class Starter extends JFrame implements Runnable, ActionListener {
         handPanel = new HandPanel(hsvPath, width, height, 0, 0, false, true, Color.BLACK);
         detector = handPanel.getDetector();
 
-        root.add(start, 1, 0);
+        try {
+            BackgroundPanel background = new BackgroundPanel(ImageIO.read(new File("/home/samuel/fifty50/hintergrund.png")), width, height);
+            background.setBounds(0, 0, width, height);
+            root.add(background, 1, 0);
+        } catch (IOException e) {
+            System.out.println("Hintergrundbild nicht gefunden");
+        }
+        root.add(start, 2, 0);
 
         //start the hand detection
         new Thread(handPanel).start();
         new Thread(this).start();
 
+        setUndecorated(true);
         pack();
+
+        //go fullscreen
+        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0];
+        device.setFullScreenWindow(this);
+
         setVisible(true);
     }
 
@@ -84,7 +95,7 @@ public class Starter extends JFrame implements Runnable, ActionListener {
             Graphics2D g2d = (Graphics2D) g;
 
             //draw the cog point
-            Point cog = cogMovingAverage(detector.getCogFlipped());
+            Point cog = detector.getCogFlipped();
             g2d.setColor(Color.BLUE);
             g2d.fillOval(cog.x - 8, cog.y - 8, 16, 16);
 
@@ -128,16 +139,6 @@ public class Starter extends JFrame implements Runnable, ActionListener {
         }
     }
 
-    public Point cogMovingAverage(Point cog) {
-        int x = (COG_SMOOTHING_VALUE * cogSmoothX + cog.x) / (COG_SMOOTHING_VALUE + 1);
-        int y = (COG_SMOOTHING_VALUE * cogSmoothY + cog.y) / (COG_SMOOTHING_VALUE + 1);
-
-        cogSmoothX = x;
-        cogSmoothY = y;
-
-        return new Point(x, y);
-    }
-
     public static void main(String[] args) {
         new Starter(args);
     }
@@ -149,7 +150,7 @@ public class Starter extends JFrame implements Runnable, ActionListener {
             repaint();
 
             try {
-                Thread.sleep(DELAY);
+                Thread.sleep(HandPanel.DELAY_HIGH_FREQ);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -181,5 +182,23 @@ public class Starter extends JFrame implements Runnable, ActionListener {
 
         setVisible(false);
         dispose();
+    }
+
+    private class BackgroundPanel extends JPanel {
+
+        Image background;
+        private int width, height;
+
+        public BackgroundPanel(Image background, int width, int height) {
+            this.background = background;
+            this.width = width;
+            this.height = height;
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            g.drawImage(background, 0, 0, width, height, null);
+        }
     }
 }
