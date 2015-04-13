@@ -1,5 +1,7 @@
 package com.fifty50.computer;
 
+import com.fifty50.computer.HSVDetector.HSVSelector;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -31,7 +33,8 @@ public class Starter extends JFrame implements Runnable, ActionListener {
         this.argsMain = argsMain;
 
         if (argsMain.length < 4) {
-            System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream, Pfad zur .txt Datei mit HSV-Werten zur Handschuherkennung, [debug: 'true' oder 'false']");
+            System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream, Pfad zur .txt Datei mit HSV-Werten zur Handschuherkennung, [debug: 'true' oder 'false']\n\n" +
+                    "Alternativ: einziger Parameter 'hsvSelector', um den HSV Selector zur Auswahl der Handschuhfarbe zu starten");
             System.exit(1);
         }
 
@@ -140,7 +143,9 @@ public class Starter extends JFrame implements Runnable, ActionListener {
     }
 
     public static void main(String[] args) {
-        new Starter(args);
+
+        if (args.length == 1 && args[0].contentEquals("hsvSelector")) new HSVSelector();
+        else new Starter(args);
     }
 
     @Override
