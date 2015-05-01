@@ -308,9 +308,8 @@ public class Main extends JFrame implements OnCalibrationFininshedListener {
                 if (count[0] < 3) {
                     //display a countdown message
                     count[0]++;
-                    handPanel.setExtraMsg("Kalibrieren in " + String.valueOf(2 - (count[0]/2)));
-                }
-                else {
+                    handPanel.setExtraMsg("Kalibrieren in " + String.valueOf(2 - (count[0] / 2)));
+                } else {
                     //the calibration button was pressed, pass this to the gesture detector
                     handPanel.setExtraMsg("Kalibrieren...");
                     timer.cancel();
@@ -325,6 +324,12 @@ public class Main extends JFrame implements OnCalibrationFininshedListener {
         //handPanel.setExtraMsg("Mittelpunkt: (" + center.x + "/" + center.y + ")");
         handPanel.setExtraMsg("");
         handPanel.setIsCalibrated(true);
+    }
+
+    @Override
+    public void paintAll(Graphics g) {
+        super.paintAll(g);
+        handler.paint((Graphics2D) g);
     }
 
     @Override

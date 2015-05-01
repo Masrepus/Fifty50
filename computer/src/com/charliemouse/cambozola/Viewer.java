@@ -220,7 +220,7 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
         if (userAgent != null && !userAgent.equals("") && !userAgent.equalsIgnoreCase("default")) {
             m_userAgent = userAgent;
         } else {
-            m_userAgent = "Fifty50"/*m_props.getAppNameVersion()*/ + "/Java " + System.getProperty("java.version") + " " + System.getProperty("java.vendor");
+            m_userAgent = "Fifty50"/*m_props.getAppNameVersion() + "/Java " + System.getProperty("java.version") + " " + System.getProperty("java.vendor")*/;
         }
         //
         // Pick up the camera profile (or default to all local if not)
@@ -525,9 +525,14 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
     public void imageChanged(ImageChangeEvent ce)
     {
         update(getGraphics());
-        getToolkit().sync();
+        //getToolkit().sync();
     }
 
+
+    @Override
+    public void paintComponents(Graphics g) {
+        update(g);
+    }
 
     public void paint(Graphics g)
     {
@@ -580,10 +585,14 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
                 paintFrame(gg2, img, d, m_wmCollection);
             }
         }
+        handler.paint((Graphics2D) m_backingStore.getGraphics());
         g.drawImage(m_backingStore, 0, 0, null);
+
+        //let the game handler paint here as well
+        handler.paint((Graphics2D) gg2);
         gg2.dispose();
 
-        //pass this to the game handler
+        //pass this to the game handler again
         handler.paint((Graphics2D) g);
     }
 

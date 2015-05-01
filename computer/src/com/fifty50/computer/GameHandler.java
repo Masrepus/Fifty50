@@ -15,10 +15,23 @@ public class GameHandler implements OnCalibrationFininshedListener {
 
     private final Main main;
     private boolean isRunning = false;
-    private BufferedImage image;
+    private volatile BufferedImage image;
+    private volatile BufferedImage red, yellow, green;
+    private boolean hasShownCountdown;
 
     public GameHandler(Main main) {
         this.main = main;
+
+        //pre-load the traffic light images
+        try {
+            red = ImageIO.read(new File("/home/samuel/fifty50/countdown1.png"));
+            yellow = ImageIO.read(new File("/home/samuel/fifty50/countdown2.png"));
+            green = ImageIO.read(new File("/home/samuel/fifty50/countdown3.png"));
+        } catch (IOException e) {
+            System.out.println("image not found!");
+            e.printStackTrace();
+            System.exit(404);
+        }
     }
 
     public boolean isRunning() {
@@ -49,17 +62,14 @@ public class GameHandler implements OnCalibrationFininshedListener {
                 switch (seconds[0]) {
 
                     case 1:
+                        image = red;
+                        hasShownCountdown = true;
+                        break;
                     case 2:
-                        try {
-                            //display the correct image
-                            image = ImageIO.read(new File("/home/samuel/fifty50/countdown" + seconds[0] + ".png"));
-                        } catch (IOException ignored) {}
+                        image = yellow;
                         break;
                     case 6:
-                        try {
-                            //display the correct image
-                            image = ImageIO.read(new File("/home/samuel/fifty50/countdown3.png"));
-                        } catch (IOException ignored) {}
+                        image = green;
                         break;
                     case 7:
                         image = null;
@@ -75,6 +85,8 @@ public class GameHandler implements OnCalibrationFininshedListener {
 
     public void paint(Graphics2D g2d) {
         //if there is something to display, draw it
-        if (image != null) g2d.drawImage(image, 0, 0, null);
+        if (image != null) {
+            g2d.drawImage(image, 0, 0, null);
+        }
     }
 }
