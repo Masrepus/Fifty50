@@ -47,6 +47,7 @@ public class HandPanel extends JPanel implements Runnable {
     private boolean debug;
 
     private int delay;
+    private GameHandler handler;
 
     public HandPanel(String hsvPath, int width, int height, int x, int y, boolean debug, boolean drawCOGOnly, Color background) {
         this.x = x;
@@ -219,6 +220,9 @@ public class HandPanel extends JPanel implements Runnable {
                 g2d.drawString(extraMsg, start + this.x, y + height - 30);
             }
         }
+
+        //pass the call over to the game handler
+        handler.paint(g2d);
     } // end of paintComponent()
 
 
@@ -276,6 +280,10 @@ public class HandPanel extends JPanel implements Runnable {
 
     public boolean isFinished() {
         return isFinished;
+    }
+
+    public void setGameHandler(GameHandler handler) {
+        this.handler = handler;
     }
 } // end of HandPanel class
 

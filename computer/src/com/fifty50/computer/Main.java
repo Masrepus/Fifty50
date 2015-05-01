@@ -16,45 +16,47 @@ import java.util.Timer;
 /**
  * Created by samuel on 02.02.15.
  */
-public class Main implements OnCalibrationFininshedListener {
+public class Main extends JFrame implements OnCalibrationFininshedListener {
 
     private GestureDetector detector;
     private DataOutputStream out;
     private GameWindow window;
     private HandPanel handPanel;
+    private GameHandler handler;
 
     public static void main(String[] args) {
-
-        Main main = null;
-        try {
-            main = new Main();
-        } catch (Exception e) {
-            System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream, Pfad zur .txt Datei mit HSV-Werten zur Handschuherkennung, [debug: 'true' oder 'false']");
-            System.exit(1);
-        }
 
         if (args.length < 4) {
             System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream, Pfad zur .txt Datei mit HSV-Werten zur Handschuherkennung, [debug: 'true' oder 'false']");
             System.exit(1);
         }
 
+        new Main(args);
+    }
+
+    public Main(String[] args) {
+
+        super("Fifty50 Racing");
+
         String hsvPath = args[3];
         boolean debug = false;
         if (args.length == 5) debug = Boolean.parseBoolean(args[4]);
 
-        GameWindow window = new GameWindow();
-        window.init(main);
+        window = new GameWindow();
+        window.init(this);
+
+        //init the game handler
+        handler = new GameHandler(this);
+
         //add the livestream panel
         Toolkit tk = Toolkit.getDefaultToolkit();
         int width = tk.getScreenSize().width;
         int height = tk.getScreenSize().height;
 
-        JFrame frame = new JFrame("Fifty50 Racing");
         window.panel1.setBounds(0, 0, width, height / 2);
-        frame.add(window.panel1);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.setExtendedState(frame.getExtendedState()|Frame.MAXIMIZED_BOTH);
-        main.attachWindow(window);
+        add(window.panel1);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setExtendedState(getExtendedState() | Frame.MAXIMIZED_BOTH);
 
         System.out.println("----Fifty50 Racing© Fernsteuerung gestartet---- \n \n");
         System.out.println("Befehle: \n" +
@@ -76,11 +78,11 @@ public class Main implements OnCalibrationFininshedListener {
         System.out.println("----Warte auf Befehle---- \n");
 
         //connect to the car
-        main.connectToServer(args[0], Integer.parseInt(args[1]));
+        connectToServer(args[0], Integer.parseInt(args[1]));
 
         //create a new instance of the cambozola mjpg player applet for the live stream
         final String url = args[2];
-        Viewer viewer = new Viewer(width, height / 2 - 5);
+        Viewer viewer = new Viewer(width, height / 2 - 5, handler);
         AppletStub stub = new AppletStub() {
             @Override
             public boolean isActive() {
@@ -129,32 +131,31 @@ public class Main implements OnCalibrationFininshedListener {
         window.panel1.add(viewer);
 
         //init the gesture detection
-        HandPanel handPanel = new HandPanel(hsvPath, 640, height / 2 -5, 320, height / 2 + 5, debug, false, Color.WHITE);
+        handPanel = new HandPanel(hsvPath, 640, height / 2 -5, 320, height / 2 + 5, debug, false, Color.WHITE);
+        handPanel.setGameHandler(handler);
         handPanel.setBounds(320, height / 2 + 5, width, height / 2 - 5);
         handPanel.setFocusable(true);
         handPanel.requestFocus();
         handPanel.addKeyListener(window);
-        main.attachPanel(handPanel);
 
-        GestureDetector detector = new GestureDetector(main, handPanel);
-        main.attachDetector(detector);
+        detector = new GestureDetector(this, handPanel, handler);
         detector.start();
 
-        frame.add(handPanel);
+        add(handPanel);
 
         //go fullscreen
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0];
-        device.setFullScreenWindow(frame);
+        //device.setFullScreenWindow(this);
 
         //everything is ready, show the jframe
-        frame.pack();
-        frame.setVisible(true);
+        pack();
+        setVisible(true);
         viewer.init();
 
         //start listening for console input
         BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
 
-        String command = "";
+        String command;
         while (true) {
             try {
                 command = console.readLine();
@@ -164,36 +165,24 @@ public class Main implements OnCalibrationFininshedListener {
             }
 
             //check if this is a legitimate command
-            if (command.toUpperCase().contentEquals("W")) main.forward(Speed.SLOW);
-            else if (command.toUpperCase().contentEquals("S")) main.backward(Speed.SLOW);
-            else if (command.toUpperCase().contentEquals("A")) main.left(Speed.SLOW);
-            else if (command.toUpperCase().contentEquals("D")) main.right(Speed.SLOW);
+            if (command.toUpperCase().contentEquals("W")) forward(Speed.SLOW);
+            else if (command.toUpperCase().contentEquals("S")) backward(Speed.SLOW);
+            else if (command.toUpperCase().contentEquals("A")) left(Speed.SLOW);
+            else if (command.toUpperCase().contentEquals("D")) right(Speed.SLOW);
 
-            else if (command.toUpperCase().contentEquals("I")) main.forward(Speed.FAST);
-            else if (command.toUpperCase().contentEquals("K")) main.backward(Speed.FAST);
-            else if (command.toUpperCase().contentEquals("J")) main.left(Speed.FAST);
-            else if (command.toUpperCase().contentEquals("L")) main.right(Speed.FAST);
+            else if (command.toUpperCase().contentEquals("I")) forward(Speed.FAST);
+            else if (command.toUpperCase().contentEquals("K")) backward(Speed.FAST);
+            else if (command.toUpperCase().contentEquals("J")) left(Speed.FAST);
+            else if (command.toUpperCase().contentEquals("L")) right(Speed.FAST);
 
             else if (command.contentEquals("")) {
-                main.brake();
-                main.straight();
+                brake();
+                straight();
             } else if (command.toUpperCase().contentEquals("X")) {
                 System.out.println("----Beende das Programm...----");
                 break;
             }
         }
-    }
-
-    public void attachPanel(HandPanel handPanel) {
-        this.handPanel = handPanel;
-    }
-
-    public void attachDetector(GestureDetector detector) {
-        this.detector = detector;
-    }
-
-    public void attachWindow(GameWindow window) {
-        this.window = window;
     }
 
     public void connectToServer(String serverName, int port) {
@@ -325,7 +314,7 @@ public class Main implements OnCalibrationFininshedListener {
                     //the calibration button was pressed, pass this to the gesture detector
                     handPanel.setExtraMsg("Kalibrieren...");
                     timer.cancel();
-                    detector.calibrate(Main.this);
+                    detector.calibrate(Main.this, handler);
                 }
             }
         }, 1000, 1000);
@@ -338,7 +327,14 @@ public class Main implements OnCalibrationFininshedListener {
         handPanel.setIsCalibrated(true);
     }
 
-    public static enum Speed {SLOW, FAST}
+    @Override
+    public void paint(Graphics g) {
+        super.paint(g);
+        //pass this to the game handler in case it needs to display something
+        handler.paint((Graphics2D) g);
+    }
+
+    public enum Speed {SLOW, FAST}
 
     private class Connector extends Thread {
 
@@ -369,7 +365,7 @@ public class Main implements OnCalibrationFininshedListener {
                     System.out.println("Verbindung fehlgeschlagen, warte...");
                     try {
                         sleep(100);
-                    } catch (InterruptedException e1) {
+                    } catch (InterruptedException ignored) {
                     }
                     connected = false;
                 }

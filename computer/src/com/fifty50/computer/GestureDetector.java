@@ -1,10 +1,7 @@
 package com.fifty50.computer;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 /**
  * Created by samuel on 27.02.15.
@@ -19,6 +16,7 @@ public class GestureDetector extends Thread {
     private Main main;
     private HandDetector detector;
     private HandPanel panel;
+    private GameHandler handler;
 
     private int smoothAngle = 0;
     private int smoothFingers = 0;
@@ -37,10 +35,11 @@ public class GestureDetector extends Thread {
     private ArrayList<OnCalibrationFininshedListener> listeners = new ArrayList<OnCalibrationFininshedListener>();
 
 
-    public GestureDetector(Main main, HandPanel panel) {
+    public GestureDetector(Main main, HandPanel panel, GameHandler handler) {
         this.main = main;
         this.detector = panel.getDetector();
         this.panel = panel;
+        this.handler = handler;
 
         brakeZoneHeight = panel.getHeight() / 3;
 
@@ -134,8 +133,9 @@ public class GestureDetector extends Thread {
         return smoothFingers;
     }
 
-    public void calibrate(OnCalibrationFininshedListener listener) {
-        listeners.add(listener);
+    public void calibrate(OnCalibrationFininshedListener... listeners) {
+
+        this.listeners.addAll(Arrays.asList(listeners));
         new Calibrator().start();
     }
 

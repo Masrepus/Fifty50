@@ -28,17 +28,9 @@ import com.charliemouse.cambozola.shared.ImageChangeEvent;
 import com.charliemouse.cambozola.shared.ImageChangeListener;
 import com.charliemouse.cambozola.watermark.Watermark;
 import com.charliemouse.cambozola.watermark.WatermarkCollection;
+import com.fifty50.computer.GameHandler;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.FontMetrics;
-import java.awt.Frame;
-import java.awt.Graphics;
-import java.awt.Image;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -114,8 +106,9 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
     private String m_userAgent = null;
     private ICameraProfile m_profile = null;
     private Dimension d;
+    private GameHandler handler;
 
-    public Viewer(int width, int height)
+    public Viewer(int width, int height, GameHandler handler)
     {
         //m_props = AppID.getAppID();
         m_alternateURLs = new Vector();
@@ -126,6 +119,8 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
         m_wmCollection = new WatermarkCollection();
 
         d = new Dimension(width, height);
+
+        this.handler = handler;
     }
 
     public void init()
@@ -287,7 +282,7 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
         });
 
         f.setLayout(new BorderLayout());
-        Viewer cv = new Viewer(100,100);
+        Viewer cv = new Viewer(100,100, null);
         //
         int width = DEFAULT_WIDTH;
         int height = DEFAULT_HEIGHT;
@@ -587,6 +582,9 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
         }
         g.drawImage(m_backingStore, 0, 0, null);
         gg2.dispose();
+
+        //pass this to the game handler
+        handler.paint((Graphics2D) g);
     }
 
 
