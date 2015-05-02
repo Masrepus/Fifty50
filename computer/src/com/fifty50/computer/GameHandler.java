@@ -87,6 +87,10 @@ public class GameHandler implements OnCalibrationFininshedListener {
         //if there is something to display, draw it
         if (image != null) {
             g2d.drawImage(image, 0, 0, null);
+        } else {
+            //paint a border between the two camera images
+            g2d.setColor(Color.WHITE);
+            g2d.fillRect(0, main.getHeight() / 2 + 5, main.getWidth(), 10);
         }
     }
 }
