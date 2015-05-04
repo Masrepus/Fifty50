@@ -27,7 +27,7 @@ public class Main extends JFrame implements OnCalibrationFininshedListener {
     public static void main(String[] args) {
 
         if (args.length < 4) {
-            System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream, Pfad zur .txt Datei mit HSV-Werten zur Handschuherkennung, [debug: 'true' oder 'false']");
+            System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream, Pfad zu den zusätzlichen Dateien, [debug: 'true' oder 'false']");
             System.exit(1);
         }
 
@@ -38,7 +38,7 @@ public class Main extends JFrame implements OnCalibrationFininshedListener {
 
         super("Fifty50 Racing");
 
-        String hsvPath = args[3];
+        String hsvPath = args[3] + "hand.txt";
         boolean debug = false;
         if (args.length == 5) debug = Boolean.parseBoolean(args[4]);
 
@@ -360,6 +360,9 @@ public class Main extends JFrame implements OnCalibrationFininshedListener {
                     OutputStream outToServer = client.getOutputStream();
                     out = new DataOutputStream(outToServer);
                     connected = true;
+
+                    //message!
+                    JOptionPane.showMessageDialog(Main.this, "Verbunden mit " + client.getRemoteSocketAddress());
                 } catch (IOException e) {
                     System.out.println("Verbindung fehlgeschlagen, warte...");
                     try {

@@ -25,6 +25,7 @@ public class Starter extends JFrame implements Runnable, ActionListener {
     private boolean timerRunning = false;
     private String[] argsMain;
     private boolean isFinished;
+    private String path;
 
     public Starter(String[] argsMain) {
 
@@ -33,12 +34,13 @@ public class Starter extends JFrame implements Runnable, ActionListener {
         this.argsMain = argsMain;
 
         if (argsMain.length < 4) {
-            System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream, Pfad zur .txt Datei mit HSV-Werten zur Handschuherkennung, [debug: 'true' oder 'false']\n\n" +
+            System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream, Pfad zu den zusätzlichen Dateien, [debug: 'true' oder 'false']\n\n" +
                     "Alternativ: einziger Parameter 'hsvSelector', um den HSV Selector zur Auswahl der Handschuhfarbe zu starten");
             System.exit(1);
         }
 
-        String hsvPath = argsMain[3];
+        path = argsMain[3];
+        String hsvPath = path + "hand.txt";
 
         Toolkit tk = Toolkit.getDefaultToolkit();
         int width = tk.getScreenSize().width;
@@ -47,7 +49,7 @@ public class Starter extends JFrame implements Runnable, ActionListener {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setExtendedState(getExtendedState()|MAXIMIZED_BOTH);
 
-        ImageIcon icon = new ImageIcon("/home/samuel/fifty50/start.png");
+        ImageIcon icon = new ImageIcon(path + "start.png");
         start = new JButton(icon);
         //put the start button in the center of the screen
         start.setBounds(width / 2 - icon.getIconWidth() / 2, height / 2 - icon.getIconHeight() / 2, icon.getIconWidth(), icon.getIconHeight());
@@ -68,7 +70,7 @@ public class Starter extends JFrame implements Runnable, ActionListener {
         detector = handPanel.getDetector();
 
         try {
-            BackgroundPanel background = new BackgroundPanel(ImageIO.read(new File("/home/samuel/fifty50/hintergrund.png")), width, height);
+            BackgroundPanel background = new BackgroundPanel(ImageIO.read(new File(path + "hintergrund.png")), width, height);
             background.setBounds(0, 0, width, height);
             root.add(background, 1, 0);
         } catch (IOException e) {
@@ -107,7 +109,7 @@ public class Starter extends JFrame implements Runnable, ActionListener {
 
                 //check if the timer is already running, else start it
                 if (!timerRunning) {
-                    start.setIcon(new ImageIcon("/home/samuel/fifty50/start_fokussiert.png"));
+                    start.setIcon(new ImageIcon(path + "start_fokussiert.png"));
                     timerIteration = 0;
                     timer = new Timer();
                     timerRunning = true;
@@ -118,11 +120,11 @@ public class Starter extends JFrame implements Runnable, ActionListener {
                         public void run() {
                             if (timerIteration < 3) {
                                 timerIteration++;
-                                start.setIcon(new ImageIcon("/home/samuel/fifty50/start_fokussiert_" + timerIteration + ".png"));
+                                start.setIcon(new ImageIcon(path + "start_fokussiert_" + timerIteration + ".png"));
                                 repaint();
                             } else {
                                 //finished, now perform the button click
-                                start.setIcon(new ImageIcon("/home/samuel/fifty50/start_fokussiert_3.png"));
+                                start.setIcon(new ImageIcon(path + "start_fokussiert_3.png"));
                                 repaint();
                                 start.doClick();
                                 timerRunning = false;
@@ -133,7 +135,7 @@ public class Starter extends JFrame implements Runnable, ActionListener {
                 }
             } else {
                 //reset to the old image and cancel the timer
-                start.setIcon(new ImageIcon("/home/samuel/fifty50/start.png"));
+                start.setIcon(new ImageIcon(path + "start.png"));
                 if (timerRunning) {
                     timer.cancel();
                     timerRunning = false;
