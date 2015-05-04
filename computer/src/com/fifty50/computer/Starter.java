@@ -35,7 +35,7 @@ public class Starter extends JFrame implements Runnable, ActionListener {
 
         if (argsMain.length < 4) {
             System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream, Pfad zu den zusätzlichen Dateien, [debug: 'true' oder 'false']\n\n" +
-                    "Alternativ: einziger Parameter 'hsvSelector', um den HSV Selector zur Auswahl der Handschuhfarbe zu starten");
+                    "Alternativ: einzige Parameter 'hsvSelector' und Pfad zu den zusätzlichen Dateien, um den HSV Selector zur Auswahl der Handschuhfarbe zu starten");
             System.exit(1);
         }
 
@@ -146,7 +146,7 @@ public class Starter extends JFrame implements Runnable, ActionListener {
 
     public static void main(String[] args) {
 
-        if (args.length == 1 && args[0].contentEquals("hsvSelector")) new HSVSelector();
+        if (args.length == 2 && args[0].contentEquals("hsvSelector")) new HSVSelector(args[1]);
         else new Starter(args);
     }
 

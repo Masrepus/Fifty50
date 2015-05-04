@@ -8,7 +8,7 @@ package com.fifty50.computer.HSVDetector;
    that best modify the threshold so that a bounding box is drawn around the object
    of interest in the threshold image
 
-   The HSV ranges can be saved to SETTINGS_FNM (hsvSettings.txt), and intial 
+   The HSV ranges can be saved to path (hsvSettings.txt), and intial
    settings will be read from there.
 
    This code uses a slightly modified version of the RangeSlider class by
@@ -53,7 +53,7 @@ public class HSVSelector extends JFrame {
     private static final int MIN_PIXELS = 100;
     private static final float SMALLEST_BOX = 100.0f;
 
-    private static final String SETTINGS_FNM = "/home/samuel/gloveHSV.txt";
+    private String path;
 
     // GUI components
     private HSVPanel hsvPanel;
@@ -64,10 +64,12 @@ public class HSVSelector extends JFrame {
     private int hueLower, hueUpper, satLower, satUpper, briLower, briUpper;
 
 
-    public HSVSelector() {
+    public HSVSelector(String path) {
         super("HSV Selector");
 
-        readHSVRanges(SETTINGS_FNM);
+        this.path = path;
+
+        readHSVRanges(this.path);
         makeGUI();
 
         // Preload the opencv_objdetect module to work around a known bug.
@@ -87,7 +89,7 @@ public class HSVSelector extends JFrame {
     } // end of HSVSelector()
 
     public static void main(String args[]) {
-        new HSVSelector();
+        new HSVSelector("");
     }
 
     private void makeGUI()
@@ -118,7 +120,7 @@ public class HSVSelector extends JFrame {
         JButton saveBut = new JButton("Save Settings");
         saveBut.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                saveHSVRanges(SETTINGS_FNM);
+                saveHSVRanges(path);
             }
         });
         p2.add(saveBut);
