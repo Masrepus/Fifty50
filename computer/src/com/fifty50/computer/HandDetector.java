@@ -67,11 +67,15 @@ public class HandDetector {
     // finger identifications
     private ArrayList<FingerName> namedFingers;
 
-    private int x, y, width;
+    private int x, y, width, height, panelWidth, panelHeight;
 
 
-    public HandDetector(String hsvPath, int width, int height, int x, int y) {
+    public HandDetector(String hsvPath, int width, int height, int x, int y, int panelWidth, int panelHeight) {
         this.width = width;
+        this.height = height;
+        this.panelWidth = panelWidth;
+        this.panelHeight = panelHeight;
+
         scaleImg = IplImage.create(width / IMG_SCALE, height / IMG_SCALE, 8, 3);
         hsvImg = IplImage.create(width / IMG_SCALE, height / IMG_SCALE, 8, 3);     // for the HSV image
         imgThreshed = IplImage.create(width / IMG_SCALE, height / IMG_SCALE, 8, 1);   // threshold image
@@ -589,11 +593,14 @@ public class HandDetector {
 
     public Point getCogFlipped() {
         //calculate the cog x coordinate to be used with a flipped image
-        int x;
+        double x, y;
         if (cogPt.x < (width / 2)) x = cogPt.x + (((width / 2) - cogPt.x) * 2);
         else x = cogPt.x - ((cogPt.x - (width / 2)) * 2);
 
-        return new Point(x, cogPt.y);
+        //the snapIm might have a different size than the full panel so we have to convert the coordinates
+        x = (x / width) * panelWidth;
+        y = (cogPt.getY() / height) * panelHeight;
+        return new Point((int) x, (int) y);
     }
 
 }  // end of HandDetector class
