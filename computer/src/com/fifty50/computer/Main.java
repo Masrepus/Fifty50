@@ -46,7 +46,7 @@ public class Main extends JFrame implements OnCalibrationFininshedListener {
         window.init(this);
 
         //init the game handler
-        handler = new GameHandler(this);
+        handler = new GameHandler(this, args[3]);
 
         //add the livestream panel
         Toolkit tk = Toolkit.getDefaultToolkit();
