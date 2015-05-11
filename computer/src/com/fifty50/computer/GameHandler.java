@@ -19,14 +19,14 @@ public class GameHandler implements OnCalibrationFininshedListener {
     private volatile BufferedImage red, yellow, green;
     private boolean hasShownCountdown;
 
-    public GameHandler(Main main) {
+    public GameHandler(Main main, String path) {
         this.main = main;
 
         //pre-load the traffic light images
         try {
-            red = ImageIO.read(new File("/home/samuel/fifty50/countdown1.png"));
-            yellow = ImageIO.read(new File("/home/samuel/fifty50/countdown2.png"));
-            green = ImageIO.read(new File("/home/samuel/fifty50/countdown3.png"));
+            red = ImageIO.read(new File(path + "countdown1.png"));
+            yellow = ImageIO.read(new File(path + "countdown2.png"));
+            green = ImageIO.read(new File(path + "countdown3.png"));
         } catch (IOException e) {
             System.out.println("image not found!");
             e.printStackTrace();
