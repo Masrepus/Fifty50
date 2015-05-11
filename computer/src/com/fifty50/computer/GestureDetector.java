@@ -9,7 +9,6 @@ import java.util.*;
 public class GestureDetector extends Thread {
 
     private static final int ANGLE_SMOOTHING_VALUE = 10;
-    private static final int FINGER_SMOOTHING_VALUE = 0;
     private static final int DIR_CACHE_SIZE = 1;
     public static final int CENTER_THRESHOLD = 75;
 
@@ -25,7 +24,6 @@ public class GestureDetector extends Thread {
     private int brakeZoneHeight;
 
     private Direction currDirection = Direction.STRAIGHT;
-    private Cache<Direction> lastDirections = new Cache<Direction>(DIR_CACHE_SIZE);
     private Direction lastSentCommand = Direction.STRAIGHT;
 
     private Speed currSpeed = Speed.BRAKE;
@@ -58,10 +56,19 @@ public class GestureDetector extends Thread {
                     handPosition = detector.getCogPoint();
                     smoothFingers = detector.getFingerTips().size();
 
-                    //accelerate if there are fingers being shown, else brake
-                    if (smoothFingers == 0 || handPosition.y > (panel.getRealHeight() - brakeZoneHeight)) {
+                    //brake if there are no fingers being shown
+                    if (smoothFingers == 0) {
                         currSpeed = Speed.BRAKE;
-                    } else currSpeed = Speed.ACCELERATE;
+                    } else {
+
+                        //check if hand is below the "brake" line
+                        if (handPosition.y > (panel.getRealHeight() - brakeZoneHeight)) {
+
+                            //default: go back, need for brake action is determined later
+                            currSpeed = Speed.BACK;
+                        }
+                        currSpeed = Speed.ACCELERATE;
+                    }
 
 
                     //check the angle
@@ -100,6 +107,11 @@ public class GestureDetector extends Thread {
                                 break;
                             case BRAKE:
                                 main.brake();
+                                break;
+                            case BACK:
+                                //if direction is straight the hand is inside the middle brake area!
+                                if (currDirection != Direction.STRAIGHT) main.backward(Main.Speed.FAST);
+                                else main.brake();
                                 break;
                         }
                     }
@@ -185,5 +197,5 @@ public class GestureDetector extends Thread {
     }
 
     public static enum Direction {LEFT, RIGHT, STRAIGHT}
-    public static enum Speed {ACCELERATE, BRAKE}
+    public static enum Speed {ACCELERATE, BRAKE, BACK}
 }
