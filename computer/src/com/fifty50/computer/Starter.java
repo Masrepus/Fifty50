@@ -1,6 +1,7 @@
 package com.fifty50.computer;
 
 import com.fifty50.computer.HSVDetector.HSVSelector;
+import javafx.scene.shape.Circle;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -9,8 +10,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
 import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by samuel on 02.04.15.
@@ -26,6 +27,9 @@ public class Starter extends JFrame implements Runnable, ActionListener {
     private String[] argsMain;
     private boolean isFinished;
     private String path;
+    private int width, height;
+    private double smoothing = 0.05, cogSmoothX, cogSmoothY;
+    private double lastCogX, lastCogY;
 
     public Starter(String[] argsMain) {
 
@@ -43,11 +47,11 @@ public class Starter extends JFrame implements Runnable, ActionListener {
         String hsvPath = path + "hand.txt";
 
         Toolkit tk = Toolkit.getDefaultToolkit();
-        int width = tk.getScreenSize().width;
-        int height = tk.getScreenSize().height;
+        width = tk.getScreenSize().width;
+        height = tk.getScreenSize().height;
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setExtendedState(getExtendedState()|MAXIMIZED_BOTH);
+        setExtendedState(getExtendedState() | MAXIMIZED_BOTH);
 
         ImageIcon icon = new ImageIcon(path + "start.png");
         start = new JButton(icon);
@@ -68,6 +72,7 @@ public class Starter extends JFrame implements Runnable, ActionListener {
         //init the hand detector and add the hand panel to the window
         handPanel = new HandPanel(hsvPath, width, height, 0, 0, false, true, Color.BLACK);
         detector = handPanel.getDetector();
+        handPanel.setStarter(this);
 
         try {
             BackgroundPanel background = new BackgroundPanel(ImageIO.read(new File(path + "hintergrund.png")), width, height);
@@ -99,12 +104,15 @@ public class Starter extends JFrame implements Runnable, ActionListener {
         if (!isFinished) {
             Graphics2D g2d = (Graphics2D) g;
 
-            //draw the cog point
             Point cog = detector.getCogFlipped();
-            g2d.setColor(Color.BLUE);
-            g2d.fillOval(cog.x - 8, cog.y - 8, 16, 16);
 
-            //check if the cog is inside the start button
+            cogSmoothX = (cog.x * smoothing) + (cogSmoothX * (1.0 - smoothing));
+            cogSmoothY = (cog.y * smoothing) + (cogSmoothY * (1.0 - smoothing));
+
+            g2d.setColor(Color.BLUE);
+            g2d.fillOval((int)cogSmoothX - 8, (int)cogSmoothY - 8, 16, 16);
+
+            //check if the cogCircle is inside the start button
             if (start.getBounds().contains(cog)) {
 
                 //check if the timer is already running, else start it
@@ -157,7 +165,8 @@ public class Starter extends JFrame implements Runnable, ActionListener {
             repaint();
 
             try {
-                Thread.sleep(HandPanel.DELAY_HIGH_FREQ);
+
+                Thread.sleep(17);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

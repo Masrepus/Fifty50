@@ -9,6 +9,8 @@ package com.fifty50.computer;
 */
 
 import com.googlecode.javacv.FrameGrabber;
+import com.googlecode.javacv.FrameRecorder;
+import com.googlecode.javacv.cpp.opencv_highgui;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,7 +22,7 @@ import static com.googlecode.javacv.cpp.opencv_core.IplImage;
 public class HandPanel extends JPanel implements Runnable {
 
     public static final int DELAY_DEFAULT = 100;  // time (ms) between redraws of the panel
-    public static final int DELAY_HIGH_FREQ = 15;
+    public static final int DELAY_HIGH_FREQ = 5;
 
     private static final int CAMERA_ID = 0;
 
@@ -48,6 +50,8 @@ public class HandPanel extends JPanel implements Runnable {
 
     private int delay;
     private GameHandler handler;
+    private long duration = 0;
+    private Starter starter;
 
     public HandPanel(String hsvPath, int width, int height, int x, int y, boolean debug, boolean drawCOGOnly, Color background) {
         this.x = x;
@@ -62,7 +66,17 @@ public class HandPanel extends JPanel implements Runnable {
 
         setBackground(background);
         msgFont = new Font("SansSerif", Font.BOLD, 18);
-        detector = new HandDetector(hsvPath, width, height, x, y);
+
+        //check the available webcam image size
+        FrameGrabber grabber = initGrabber(CAMERA_ID);
+        try {
+            detector = new HandDetector(hsvPath, grabber.getImageWidth(), grabber.getImageHeight(), x, y, width, height);
+            grabber.stop();
+            grabber.release();
+        } catch (FrameGrabber.Exception e) {
+            e.printStackTrace();
+            System.exit(404);
+        }
         // include the HSV color info about the user's gloved hand
     } // end of HandPanel()
 
@@ -81,7 +95,6 @@ public class HandPanel extends JPanel implements Runnable {
         if (grabber == null)
             return;
 
-        long duration;
         isRunning = true;
         isFinished = false;
 
@@ -93,11 +106,13 @@ public class HandPanel extends JPanel implements Runnable {
             detector.update(snapIm);
             repaint();
 
+            if (drawCOGOnly) starter.repaint();
+
             duration = System.currentTimeMillis() - startTime;
             totalTime += duration;
             if (duration < delay) {
                 try {
-                    Thread.sleep(delay - duration);  // wait until DELAY time has passed
+                    Thread.sleep(/*delay - */duration);  // wait until DELAY time has passed
                 } catch (Exception ex) {
                 }
             }
@@ -114,12 +129,12 @@ public class HandPanel extends JPanel implements Runnable {
         try {
             grabber = FrameGrabber.createDefault(ID);
             grabber.setFormat("dshow");       // using DirectShow
-            grabber.setImageWidth(width);     // default is too small: 320x240
-            grabber.setImageHeight(height);
+            grabber.setFrameRate(50);
             grabber.start();
+            System.out.println("Image size: " + grabber.getImageWidth() + "x" + grabber.getImageHeight() + ", framerate: " + grabber.getFrameRate());
         } catch (Exception e) {
             System.out.println("Could not start grabber");
-            System.out.println(e);
+            e.printStackTrace();
             System.exit(1);
         }
         return grabber;
@@ -284,6 +299,14 @@ public class HandPanel extends JPanel implements Runnable {
 
     public void setGameHandler(GameHandler handler) {
         this.handler = handler;
+    }
+
+    public double getDuration() {
+        return duration;
+    }
+
+    public void setStarter(Starter starter) {
+        this.starter = starter;
     }
 } // end of HandPanel class
 

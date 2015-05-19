@@ -131,7 +131,7 @@ public class Main extends JFrame implements OnCalibrationFininshedListener {
         window.panel1.add(viewer);
 
         //init the gesture detection
-        handPanel = new HandPanel(hsvPath, 640, height / 2 - 5, 320, height / 2 + 5, debug, false, Color.WHITE);
+        handPanel = new HandPanel(hsvPath, 640, height / 2 - 5, 320, height / 2 + 5, debug, true, Color.WHITE);
         handPanel.setGameHandler(handler);
         handPanel.setBounds(320, height / 2 + 5, width, height / 2 - 5);
         handPanel.setFocusable(true);
