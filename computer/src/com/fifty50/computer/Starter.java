@@ -1,13 +1,14 @@
 package com.fifty50.computer;
 
 import com.fifty50.computer.HSVDetector.HSVSelector;
-import javafx.scene.shape.Circle;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.Timer;
@@ -16,7 +17,7 @@ import java.util.TimerTask;
 /**
  * Created by samuel on 02.04.15.
  */
-public class Starter extends JFrame implements Runnable, ActionListener {
+public class Starter extends JLayeredPane implements Runnable, ActionListener, KeyListener {
 
     private HandDetector detector;
     private JButton start;
@@ -25,7 +26,8 @@ public class Starter extends JFrame implements Runnable, ActionListener {
     private int timerIteration = 0;
     private boolean timerRunning = false;
     private String[] argsMain;
-    private boolean isFinished;
+    private boolean isRunning, isFinished;
+    private Frame frame;
     private String path;
     private int width, height;
     private double smoothing = 0.05, cogSmoothX, cogSmoothY;
@@ -33,9 +35,8 @@ public class Starter extends JFrame implements Runnable, ActionListener {
 
     public Starter(String[] argsMain) {
 
-        super("Start");
-
         this.argsMain = argsMain;
+        isRunning = true;
 
         if (argsMain.length < 4) {
             System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream, Pfad zu den zusätzlichen Dateien, [debug: 'true' oder 'false']\n\n" +
@@ -50,10 +51,7 @@ public class Starter extends JFrame implements Runnable, ActionListener {
         width = tk.getScreenSize().width;
         height = tk.getScreenSize().height;
 
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setExtendedState(getExtendedState() | MAXIMIZED_BOTH);
-
-        ImageIcon icon = new ImageIcon(path + "start.png");
+        ImageIcon icon = new ImageIcon("/home/samuel/fifty50/start.png");
         start = new JButton(icon);
         //put the start button in the center of the screen
         start.setBounds(width / 2 - icon.getIconWidth() / 2, height / 2 - icon.getIconHeight() / 2, icon.getIconWidth(), icon.getIconHeight());
@@ -61,13 +59,14 @@ public class Starter extends JFrame implements Runnable, ActionListener {
         start.setBorderPainted(false);
         start.setOpaque(false);
         start.addActionListener(this);
+        start.setVisible(true);
 
-        getContentPane().setBackground(Color.BLACK);
-        JLayeredPane root = new JLayeredPane();
-        root.setLayout(null);
-        root.setBackground(Color.BLACK);
-        root.setBounds(0, 0, width, height);
-        add(root);
+        setBackground(Color.GREEN);
+        //JLayeredPane root = new JLayeredPane();
+        setLayout(null);
+        setBackground(Color.RED);
+        setBounds(0, 0, width, height);
+
 
         //init the hand detector and add the hand panel to the window
         handPanel = new HandPanel(hsvPath, width, height, 0, 0, false, true, Color.BLACK);
@@ -77,24 +76,26 @@ public class Starter extends JFrame implements Runnable, ActionListener {
         try {
             BackgroundPanel background = new BackgroundPanel(ImageIO.read(new File(path + "hintergrund.png")), width, height);
             background.setBounds(0, 0, width, height);
-            root.add(background, 1, 0);
+            background.setVisible(true);
+            add(background, 1, 0);
         } catch (IOException e) {
             System.out.println("Hintergrundbild nicht gefunden");
         }
-        root.add(start, 2, 0);
+
+        add(start, 2, 0);
+
+        setVisible(true);
+
+        //connect to the frame
+        //frame = new Frame(this, argsMain);
 
         //start the hand detection
         new Thread(handPanel).start();
         new Thread(this).start();
 
-        setUndecorated(true);
-        pack();
-
-        //go fullscreen
-        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0];
-        device.setFullScreenWindow(this);
-
-        setVisible(true);
+        addKeyListener(this);
+        setFocusable(true);
+        requestFocus();
     }
 
     @Override
@@ -161,7 +162,7 @@ public class Starter extends JFrame implements Runnable, ActionListener {
     @Override
     public void run() {
 
-        while (!isFinished) {
+        while (isRunning) {
             repaint();
 
             try {
@@ -171,17 +172,18 @@ public class Starter extends JFrame implements Runnable, ActionListener {
                 e.printStackTrace();
             }
         }
+        isFinished = true;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
 
         //start the main game screen
-        isFinished = true;
+        isRunning = false;
         handPanel.closeDown();
 
         //wait for the hand detector to finish
-        while (!handPanel.isFinished()) {
+        while (!handPanel.isFinished() && !isFinished) {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e1) {
@@ -189,15 +191,64 @@ public class Starter extends JFrame implements Runnable, ActionListener {
             }
         }
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Main.main(argsMain);
+        //tell the frame to start the game
+        frame.switchMode(Frame.Mode.GAME);
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+            //start the main game screen
+            isFinished = true;
+            handPanel.closeDown();
+
+            //wait for the hand detector to finish
+            while (!handPanel.isFinished()) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
             }
-        }).start();
+
+            //tell the frame to start the game
+            frame.switchMode(Frame.Mode.GAME);
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+
+    }
+
+    public void pause() {
+
+        //stop the repainting
+        isFinished = true;
+
+        //stop the handpanel
+        handPanel.closeDown();
 
         setVisible(false);
-        dispose();
+    }
+
+    public void restart() {
+
+        isFinished = false;
+        //restart the handpanel and the repainting
+        new Thread(handPanel).start();
+        new Thread(this).start();
+
+        setVisible(true);
+    }
+
+    public void setFrame(Frame frame) {
+        this.frame = frame;
     }
 
     private class BackgroundPanel extends JPanel {

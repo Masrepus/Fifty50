@@ -32,6 +32,8 @@ public class GestureDetector extends Thread {
     final ArrayList<Point> pointsCache = new ArrayList<Point>();
     private ArrayList<OnCalibrationFininshedListener> listeners = new ArrayList<OnCalibrationFininshedListener>();
 
+    private boolean isRunning;
+
 
     public GestureDetector(Main main, HandPanel panel, GameHandler handler) {
         this.main = main;
@@ -48,7 +50,9 @@ public class GestureDetector extends Thread {
     @Override
     public void run() {
 
-        while (isAlive()) {
+        isRunning = true;
+
+        while (isRunning) {
 
             //only start sending commands after calibration
             if (center != null) {
@@ -56,19 +60,10 @@ public class GestureDetector extends Thread {
                     handPosition = detector.getCogPoint();
                     smoothFingers = detector.getFingerTips().size();
 
-                    //brake if there are no fingers being shown
-                    if (smoothFingers == 0) {
+                    //accelerate if there are fingers being shown, else brake
+                    if (smoothFingers == 0 || handPosition.y > (panel.getRealHeight() - brakeZoneHeight)) {
                         currSpeed = Speed.BRAKE;
-                    } else {
-
-                        //check if hand is below the "brake" line
-                        if (handPosition.y > (panel.getRealHeight() - brakeZoneHeight)) {
-
-                            //default: go back, need for brake action is determined later
-                            currSpeed = Speed.BACK;
-                        }
-                        currSpeed = Speed.ACCELERATE;
-                    }
+                    } else currSpeed = Speed.ACCELERATE;
 
 
                     //check the angle
@@ -107,11 +102,6 @@ public class GestureDetector extends Thread {
                                 break;
                             case BRAKE:
                                 main.brake();
-                                break;
-                            case BACK:
-                                //if direction is straight the hand is inside the middle brake area!
-                                if (currDirection != Direction.STRAIGHT) main.backward(Main.Speed.FAST);
-                                else main.brake();
                                 break;
                         }
                     }
@@ -153,6 +143,10 @@ public class GestureDetector extends Thread {
 
     public int getBrakeZoneHeight() {
         return brakeZoneHeight;
+    }
+
+    public void close() {
+        isRunning = false;
     }
 
     private class Calibrator extends Thread {
@@ -197,5 +191,5 @@ public class GestureDetector extends Thread {
     }
 
     public static enum Direction {LEFT, RIGHT, STRAIGHT}
-    public static enum Speed {ACCELERATE, BRAKE, BACK}
+    public static enum Speed {ACCELERATE, BRAKE}
 }

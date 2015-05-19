@@ -106,7 +106,7 @@ public class HandPanel extends JPanel implements Runnable {
             detector.update(snapIm);
             repaint();
 
-            if (drawCOGOnly) starter.repaint();
+            if (drawCOGOnly && starter != null) starter.repaint();
 
             duration = System.currentTimeMillis() - startTime;
             totalTime += duration;
