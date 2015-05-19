@@ -104,6 +104,7 @@ public class Main {
             new Server(this, port).start();
         } catch (IOException e) {
             System.out.println("Fehler beim Start des Servers auf Port " + port);
+            e.printStackTrace();
         }
     }
 
