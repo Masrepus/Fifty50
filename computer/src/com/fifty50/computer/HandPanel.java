@@ -257,11 +257,6 @@ public class HandPanel extends JPanel implements Runnable {
             }
         }
 
-        //TODO gesture detector funktioniert nicht außer im debug modus
-        String statsMsg = String.format("Snap Avg. Time:  %.1f ms",
-                ((double) totalTime / imageCount));
-        System.out.println(statsMsg + ", Contour angle: " + gestureDetector.getSmoothAngle() + "°, " + "Fingers: " + gestureDetector.getFingerCount() + ", " + gestureDetector.getCurrSpeed() + ", " + gestureDetector.getCurrDirection() + "    " + extraMsg);
-
         //pass the call over to the game handler
         handler.paint(g2d, new Point(0, y));
     }
