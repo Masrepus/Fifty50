@@ -9,12 +9,12 @@ package com.fifty50.computer;
 */
 
 import com.googlecode.javacv.FrameGrabber;
-import com.googlecode.javacv.FrameRecorder;
-import com.googlecode.javacv.cpp.opencv_highgui;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+import java.lang.reflect.Field;
 
 import static com.googlecode.javacv.cpp.opencv_core.IplImage;
 
@@ -52,6 +52,9 @@ public class HandPanel extends JPanel implements Runnable {
     private GameHandler handler;
     private long duration = 0;
     private Starter starter;
+    private Frame frame;
+    private volatile boolean dialogShown;
+    private Thread handPanelThread;
 
     public HandPanel(String hsvPath, int width, int height, int x, int y, boolean debug, boolean drawCOGOnly, Color background) {
         this.x = x;
@@ -82,6 +85,10 @@ public class HandPanel extends JPanel implements Runnable {
 
     public int getRealHeight() {
         return height;
+    }
+
+    public void setFrame(Frame frame) {
+        this.frame = frame;
     }
 
     public void run()
@@ -128,7 +135,7 @@ public class HandPanel extends JPanel implements Runnable {
         System.out.println("Initializing grabber for " + CAMERA_ID + " ...");
         try {
             grabber = FrameGrabber.createDefault(ID);
-            grabber.setFormat("dshow");       // using DirectShow
+            grabber.setFormat("mjpeg");       // using DirectShow
             grabber.setFrameRate(50);
             grabber.start();
             System.out.println("Image size: " + grabber.getImageWidth() + "x" + grabber.getImageHeight() + ", framerate: " + grabber.getFrameRate());
@@ -144,7 +151,12 @@ public class HandPanel extends JPanel implements Runnable {
     private IplImage picGrab(FrameGrabber grabber, int ID) {
         IplImage im = null;
         try {
-            im = grabber.grab();  // take a snap
+            //im = grabber.grab();  // take a snap
+            //hack the image out of the grabber!
+            grabber.grab();
+            Field f = grabber.getClass().getDeclaredField("return_image");
+            f.setAccessible(true);
+            im = (IplImage) f.get(grabber);
         } catch (Exception e) {
             System.out.println("Problem grabbing image for camera " + ID);
         }
@@ -161,12 +173,18 @@ public class HandPanel extends JPanel implements Runnable {
         }
     }  // end of closeGrabber()
 
+    @Override
+    public void paint(Graphics g) {
+        super.paint(g);
 
-    public void paintComponent(Graphics g)
-  /* Draw the image, the detected hand and finger info, and the 
-     average ms snap time at the bottom left of the panel. 
-  */ {
-        super.paintComponent(g);
+        drawContent(g);
+    }
+
+    private void drawContent(Graphics g) {
+
+        /* Draw the image, the detected hand and finger info, and the
+     average ms snap time at the bottom left of the panel.
+  */
         Graphics2D g2d = (Graphics2D) g;
 
         //flip the canvas
@@ -174,41 +192,44 @@ public class HandPanel extends JPanel implements Runnable {
         tx.translate(-width, 0);
         g2d.transform(tx);
 
-        int x = this.x - width;
+        //x offset calculations somehow not necessary anymore
+        int x_offset = -x, y_offset = 0;
 
         //if requested, draw the image that was snapped as well
-        if (snapIm != null && !drawCOGOnly)
-            g2d.drawImage(snapIm.getBufferedImage(), x, y, this);
+        if (snapIm != null && !drawCOGOnly) {
+            g2d.setColor(Color.WHITE);
+            g2d.drawImage(snapIm.getBufferedImage(), x_offset, 0, null);
+        }
 
         //paint a triangle pointing to the direction where the car is currently steering to
-        int centerVertical = y + (height / 2);
+        int centerVertical = y_offset + (height / 2);
 
         //if only the cog should be drawn, skip this section
         if (!drawCOGOnly) {
             if (gestureDetector.getCurrDirection() == GestureDetector.Direction.RIGHT) { //image flipped!
                 g2d.setColor(Color.RED);
-                g2d.fillPolygon(new int[]{x - 30, x - 10, x - 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+                g2d.fillPolygon(new int[]{x_offset - 30, x_offset - 10, x_offset - 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
             } else if (gestureDetector.getCurrDirection() == GestureDetector.Direction.LEFT) {
                 g2d.setColor(Color.RED);
-                g2d.fillPolygon(new int[]{x + width + 30, x + width + 10, x + width + 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+                g2d.fillPolygon(new int[]{x_offset + width + 30, x_offset + width + 10, x_offset + width + 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
             } else {
                 g2d.setColor(Color.WHITE);
-                g2d.fillPolygon(new int[]{x - 30, x - 10, x - 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
-                g2d.fillPolygon(new int[]{x + width + 30, x + width + 10, x + width + 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+                g2d.fillPolygon(new int[]{x_offset - 30, x_offset - 10, x_offset - 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+                g2d.fillPolygon(new int[]{x_offset + width + 30, x_offset + width + 10, x_offset + width + 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
             }
 
             //paint a vertical line where the player has set his center point if calibration has been done already
             if (isCalibrated) {
                 g2d.setColor(Color.RED);
-                g2d.fillRect(x + gestureDetector.getCenter().x - 5, y, 10, height);
+                g2d.fillRect(x_offset + gestureDetector.getCenter().x - 5, y_offset, 10, height);
 
                 //draw two lines at the ends of the threshold area
                 g2d.setColor(Color.BLUE);
-                g2d.fillRect(x + gestureDetector.getCenter().x - GestureDetector.CENTER_THRESHOLD, y, 1, height);
-                g2d.fillRect(x + gestureDetector.getCenter().x + GestureDetector.CENTER_THRESHOLD, y, 1, height);
+                g2d.fillRect(x_offset + gestureDetector.getCenter().x - GestureDetector.CENTER_THRESHOLD, y_offset, 1, height);
+                g2d.fillRect(x_offset + gestureDetector.getCenter().x + GestureDetector.CENTER_THRESHOLD, y_offset, 1, height);
 
                 //draw a horizontal line at the top of the brake area
-                g2d.fillRect(x, y + height - gestureDetector.getBrakeZoneHeight() - 10, width, 10);
+                g2d.fillRect(x_offset, y_offset + height - gestureDetector.getBrakeZoneHeight() - 10, width, 10);
             } else {
                 if (extraMsg.isEmpty()) extraMsg = "Drücke ENTER zum Kalibrieren";
             }
@@ -229,15 +250,26 @@ public class HandPanel extends JPanel implements Runnable {
                 int start = width / 2 - stringLen / 2;
 
                 g2d.setColor(Color.WHITE);
-                g2d.fillRect(this.x + start - 5, y + height - 50, stringLen + 5, 50);
+                g2d.fillRect(-x_offset + start - 5, y_offset + height - 50, stringLen + 5, 50);
 
                 g2d.setColor(Color.BLUE);
-                g2d.drawString(extraMsg, start + this.x, y + height - 30);
+                g2d.drawString(extraMsg, start - x_offset, y_offset + height - 30);
             }
         }
 
+        //TODO gesture detector funktioniert nicht außer im debug modus
+        String statsMsg = String.format("Snap Avg. Time:  %.1f ms",
+                ((double) totalTime / imageCount));
+        System.out.println(statsMsg + ", Contour angle: " + gestureDetector.getSmoothAngle() + "°, " + "Fingers: " + gestureDetector.getFingerCount() + ", " + gestureDetector.getCurrSpeed() + ", " + gestureDetector.getCurrDirection() + "    " + extraMsg);
+
         //pass the call over to the game handler
-        handler.paint(g2d);
+        handler.paint(g2d, new Point(0, y));
+    }
+
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        drawContent(g);
     } // end of paintComponent()
 
 
@@ -253,7 +285,7 @@ public class HandPanel extends JPanel implements Runnable {
         if (imageCount > 0) {
             String statsMsg = String.format("Snap Avg. Time:  %.1f ms",
                     ((double) totalTime / imageCount));
-            g2d.drawString(statsMsg + ", Contour angle: " + gestureDetector.getSmoothAngle() + "°, " + "Fingers: " + gestureDetector.getFingerCount() + ", " + gestureDetector.getCurrSpeed() + ", " +gestureDetector.getCurrDirection() + "    " + extraMsg, 5, y + height - 30);
+            g2d.drawString(statsMsg + ", Contour angle: " + gestureDetector.getSmoothAngle() + "°, " + "Fingers: " + gestureDetector.getFingerCount() + ", " + gestureDetector.getCurrSpeed() + ", " + gestureDetector.getCurrDirection() + "    " + extraMsg, 5, y + height - 30);
             // write statistics in bottom-left corner
         } else  // no image yet
             g2d.drawString("Loading...", 5, y + height - 30);
@@ -286,7 +318,9 @@ public class HandPanel extends JPanel implements Runnable {
     public void setGestureDetector(GestureDetector gestureDetector) {
         this.gestureDetector = gestureDetector;
 
-        new Thread(this).start();   // start updating the panel's image beacuse the gesture detector is ready
+        handPanelThread = new Thread(this);
+        // start updating the panel's image beacuse the gesture detector is ready
+        handPanelThread.start();
     }
 
     public void setIsCalibrated(boolean isCalibrated) {
@@ -305,8 +339,22 @@ public class HandPanel extends JPanel implements Runnable {
         return duration;
     }
 
+    @Override
+    public Dimension getPreferredSize() {
+        return new Dimension(width, height);
+    }
+
+    @Override
+    public Dimension getMinimumSize() {
+        return new Dimension(width, height);
+    }
+
     public void setStarter(Starter starter) {
         this.starter = starter;
+    }
+
+    public Thread getHandPanelThread() {
+        return handPanelThread;
     }
 } // end of HandPanel class
 

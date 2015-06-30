@@ -929,4 +929,14 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
     public boolean hasError() {
         return (m_msg != null) && m_msg.contains("Exception");
     }
+
+    @Override
+    public Dimension getPreferredSize() {
+        return new Dimension(m_imgWidth, m_imgHeight);
+    }
+
+    @Override
+    public Dimension getMinimumSize() {
+        return new Dimension(m_imgWidth, m_imgHeight);
+    }
 }

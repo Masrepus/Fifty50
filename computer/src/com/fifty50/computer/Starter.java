@@ -32,6 +32,7 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
     private int width, height;
     private double smoothing = 0.05, cogSmoothX, cogSmoothY;
     private double lastCogX, lastCogY;
+    private Thread handPanelThread;
 
     public Starter(String[] argsMain) {
 
@@ -90,7 +91,8 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         //frame = new Frame(this, argsMain);
 
         //start the hand detection
-        new Thread(handPanel).start();
+        handPanelThread = new Thread(handPanel);
+        handPanelThread.start();
         new Thread(this).start();
 
         addKeyListener(this);
@@ -231,8 +233,16 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         //stop the repainting
         isFinished = true;
 
+        removeKeyListener(this);
+
         //stop the handpanel
         handPanel.closeDown();
+        try {
+            //wait for the panel thread to finish before continuing
+            handPanelThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         setVisible(false);
     }
@@ -244,11 +254,23 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         new Thread(handPanel).start();
         new Thread(this).start();
 
+        addKeyListener(this);
+
         setVisible(true);
     }
 
     public void setFrame(Frame frame) {
         this.frame = frame;
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+        return new Dimension(width, height);
+    }
+
+    @Override
+    public Dimension getMinimumSize() {
+        return new Dimension(width, height);
     }
 
     private class BackgroundPanel extends JPanel {

@@ -90,7 +90,14 @@ public class GameHandler implements OnCalibrationFininshedListener {
         } else {
             //paint a border between the two camera images
             g2d.setColor(Color.WHITE);
-            g2d.fillRect(0, main.getHeight() / 2 + 5, main.getWidth(), 10);
+            g2d.fillRect(0, main.getHeight() / 2 - 5, main.getWidth(), 10);
+        }
+    }
+
+    public void paint(Graphics2D g2d, Point origin) {
+        //if there is something to display, draw it at the right place (hand panel x=0 is not window x=0)
+        if (image != null) {
+            g2d.drawImage(image, -origin.x, -origin.y, null);
         }
     }
 }
