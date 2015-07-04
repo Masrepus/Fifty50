@@ -154,6 +154,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         }
         detector.close();
         viewer.stop();
+        handler.setVisible(false);
         setVisible(false);
     }
 
@@ -167,6 +168,8 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         viewer.init();
         handPanel.setFocusable(true);
         handPanel.requestFocus();
+        handler.setVisible(true);
+
         repaint();
         frame.repaint();
     }
@@ -321,6 +324,10 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
     public void setFrame(Frame frame) {
         this.frame = frame;
+    }
+
+    public GameHandler getHandler() {
+        return handler;
     }
 
     @Override

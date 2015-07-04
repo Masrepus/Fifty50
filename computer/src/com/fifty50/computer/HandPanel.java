@@ -256,9 +256,6 @@ public class HandPanel extends JPanel implements Runnable {
                 g2d.drawString(extraMsg, start - x_offset, y_offset + height - 30);
             }
         }
-
-        //pass the call over to the game handler
-        handler.paint(g2d, new Point(0, y));
     }
 
     public void paintComponent(Graphics g) {

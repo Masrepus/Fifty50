@@ -33,6 +33,10 @@ public class Frame extends JFrame {
         height = tk.getScreenSize().height;
 
         getContentPane().setLayout(null);
+        JLayeredPane background = new JLayeredPane();
+        background.setLayout(null);
+        background.setBounds(0, 0, width, height);
+        getContentPane().add(background);
 
         //init the main screen but leave it invisible
         main = new Main(args);
@@ -40,20 +44,20 @@ public class Frame extends JFrame {
         main.setVisible(false);
         main.setFrame(this);
         main.init();
-        getContentPane().add(main);
-        getContentPane().revalidate();
+        background.add(main, 0);
+        background.revalidate();
 
         //init the start screen
         starter = new Starter(args);
         starter.setBounds(0, 0, width, height);
         starter.setVisible(true);
         starter.setFrame(this);
-        getContentPane().add(starter);
-        getContentPane().revalidate();
+        background.add(starter, 0);
+        background.revalidate();
 
         setUndecorated(true);
         pack();
-        getContentPane().repaint();
+        background.repaint();
 
         //go fullscreen
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0];

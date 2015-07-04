@@ -63,7 +63,7 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         start.setVisible(true);
 
         setBackground(Color.GREEN);
-        //JLayeredPane root = new JLayeredPane();
+
         setLayout(null);
         setBackground(Color.RED);
         setBounds(0, 0, width, height);
@@ -74,8 +74,11 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         detector = handPanel.getDetector();
         handPanel.setStarter(this);
 
+        String bgImg = "hintergrund";
+        if (tk.getScreenSize().width/tk.getScreenSize().height == 5/4) bgImg += "_54.png";
+        else bgImg += ".png";
         try {
-            BackgroundPanel background = new BackgroundPanel(ImageIO.read(new File(path + "hintergrund.png")), width, height);
+            BackgroundPanel background = new BackgroundPanel(ImageIO.read(new File(path + bgImg)), width, height);
             background.setBounds(0, 0, width, height);
             background.setVisible(true);
             add(background, 1, 0);
@@ -86,9 +89,6 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         add(start, 2, 0);
 
         setVisible(true);
-
-        //connect to the frame
-        //frame = new Frame(this, argsMain);
 
         //start the hand detection
         handPanelThread = new Thread(handPanel);
