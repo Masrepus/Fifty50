@@ -2,6 +2,8 @@ package com.fifty50.computer;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.*;
+import java.util.Timer;
 
 /**
  * Created by samuel on 02.05.15.
@@ -30,24 +32,32 @@ public class Frame extends JFrame {
         width = tk.getScreenSize().width;
         height = tk.getScreenSize().height;
 
-        //init the start screen
-        starter = new Starter(args);
-        starter.setBounds(0, 0, width, height);
-        starter.setVisible(true);
-        starter.setFrame(this);
-        getContentPane().add(starter);
+        getContentPane().setLayout(null);
+        JLayeredPane background = new JLayeredPane();
+        background.setLayout(null);
+        background.setBounds(0, 0, width, height);
+        getContentPane().add(background);
 
         //init the main screen but leave it invisible
         main = new Main(args);
         main.setBounds(0, 0, width, height);
         main.setVisible(false);
         main.setFrame(this);
-        getContentPane().add(main);
+        main.init();
+        background.add(main, 0);
+        background.revalidate();
+
+        //init the start screen
+        starter = new Starter(args);
+        starter.setBounds(0, 0, width, height);
+        starter.setVisible(true);
+        starter.setFrame(this);
+        background.add(starter, 0);
+        background.revalidate();
 
         setUndecorated(true);
         pack();
-        getContentPane().revalidate();
-        getContentPane().repaint();
+        background.repaint();
 
         //go fullscreen
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0];
@@ -64,9 +74,9 @@ public class Frame extends JFrame {
                 //start the game
                 starter.setVisible(false);
                 starter.pause();
+                repaint();
                 main.setVisible(true);
-                if (gameHasRun) main.restart();
-                else main.start();
+                main.start();
 
                 gameHasRun = true;
                 break;

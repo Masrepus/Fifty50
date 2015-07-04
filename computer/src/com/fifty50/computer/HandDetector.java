@@ -532,11 +532,13 @@ public class HandDetector {
 
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON);  // line smoothing
-        g2d.setPaint(Color.YELLOW);
+        g2d.setColor(Color.YELLOW);
         g2d.setStroke(new BasicStroke(4));  // thick yellow pen
 
         // label the finger tips in red or green, and draw COG lines to named tips
         g2d.setFont(msgFont);
+
+        int x_offset = x, y_offset = 0;
 
         int cogPtX_flipped;
 
@@ -554,14 +556,14 @@ public class HandDetector {
 
                 if (namedFingers.get(i) == FingerName.UNBEKANNT) {
                     g2d.setPaint(Color.RED);   // unnamed finger tip is red
-                    g2d.drawOval(ptX_flipped - 8 + x, pt.y - 8 + y, 16, 16);
-                    g2d.drawString("" + i, ptX_flipped + x, pt.y - 10 + y);   // label it with a digit
+                    g2d.drawOval(ptX_flipped - 8 + x_offset, pt.y - 8 + y_offset, 16, 16);
+                    g2d.drawString("" + i, ptX_flipped + x_offset, pt.y - 10 + y_offset);   // label it with a digit
                 } else {   // draw yellow line to the named finger tip from COG
-                    g2d.setPaint(Color.YELLOW);
-                    g2d.drawLine(cogPtX_flipped + x, cogPt.y + y, ptX_flipped + x, pt.y + y);
+                    g2d.setColor(Color.YELLOW);
+                    g2d.drawLine(cogPtX_flipped + x_offset, cogPt.y + y_offset, ptX_flipped + x_offset, pt.y + y_offset);
 
-                    g2d.setPaint(Color.GREEN);   // named finger tip is green
-                    g2d.drawOval(ptX_flipped - 8 + x, pt.y - 8 + y, 16, 16);
+                    g2d.setColor(Color.GREEN);   // named finger tip is green
+                    g2d.drawOval(ptX_flipped - 8 + x_offset, pt.y - 8 + y_offset, 16, 16);
 
                     //don't draw finger names
                     //g2d.drawString(namedFingers.get(i).toString().toLowerCase(), ptX_flipped + x, pt.y - 10 + y);
@@ -570,8 +572,8 @@ public class HandDetector {
         }
 
         // draw COG
-        g2d.setPaint(Color.GREEN);
-        g2d.fillOval(cogPtX_flipped - 8 + x, cogPt.y - 8 + y, 16, 16);
+        g2d.setColor(Color.GREEN);
+        g2d.fillOval(cogPtX_flipped - 8 + x_offset, cogPt.y - 8 + y_offset, 16, 16);
     }  // end of draw()
 
 

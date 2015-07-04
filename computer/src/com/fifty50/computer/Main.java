@@ -1,6 +1,7 @@
 package com.fifty50.computer;
 
 import com.charliemouse.cambozola.Viewer;
+import com.googlecode.javacv.FrameGrabber;
 
 import javax.swing.*;
 import java.applet.AppletContext;
@@ -10,33 +11,32 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
-import java.util.*;
 import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by samuel on 02.02.15.
  */
-public class Main extends JFrame implements OnCalibrationFininshedListener {
+public class Main extends JPanel implements OnCalibrationFininshedListener, Runnable {
 
     private GestureDetector detector;
     private DataOutputStream out;
     private GameWindow window;
     private HandPanel handPanel;
     private GameHandler handler;
-
-    public static void main(String[] args) {
-
-        if (args.length < 4) {
-            System.out.println("Parameter benötigt: Server adresse, Server port, URL zum Webcam-Stream, Pfad zu den zusätzlichen Dateien, [debug: 'true' oder 'false']");
-            System.exit(1);
-        }
-
-        new Main(args);
-    }
+    private String[] args;
+    private Viewer viewer;
+    private Frame frame;
+    private boolean hasRun = false;
+    private int width, height;
 
     public Main(String[] args) {
+        this.args = args;
+    }
 
-        super("Fifty50 Racing");
+    public void init() {
+
+        hasRun = true;
 
         String hsvPath = args[3] + "hand.txt";
         boolean debug = false;
@@ -50,13 +50,13 @@ public class Main extends JFrame implements OnCalibrationFininshedListener {
 
         //add the livestream panel
         Toolkit tk = Toolkit.getDefaultToolkit();
-        int width = tk.getScreenSize().width;
-        int height = tk.getScreenSize().height;
+        width = tk.getScreenSize().width;
+        height = tk.getScreenSize().height;
 
+        setLayout(null);
+        window.panel1.setLayout(null);
         window.panel1.setBounds(0, 0, width, height / 2);
-        add(window.panel1);
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setExtendedState(getExtendedState() | Frame.MAXIMIZED_BOTH);
+        //add(window.panel1);
 
         System.out.println("----Fifty50 Racing© Fernsteuerung gestartet---- \n \n");
         System.out.println("Befehle: \n" +
@@ -82,7 +82,7 @@ public class Main extends JFrame implements OnCalibrationFininshedListener {
 
         //create a new instance of the cambozola mjpg player applet for the live stream
         final String url = args[2];
-        Viewer viewer = new Viewer(width, height / 2 - 5, handler);
+        viewer = new Viewer(width, height / 2 - 5, handler);
         AppletStub stub = new AppletStub() {
             @Override
             public boolean isActive() {
@@ -128,61 +128,50 @@ public class Main extends JFrame implements OnCalibrationFininshedListener {
             }
         };
         viewer.setStub(stub);
-        window.panel1.add(viewer);
+        viewer.setBounds(0, 0, width, height / 2 - 5);
+        add(viewer, 0);
+        revalidate();
 
         //init the gesture detection
-        handPanel = new HandPanel(hsvPath, 640, height / 2 - 5, 320, height / 2 + 5, debug, true, Color.WHITE);
+        handPanel = new HandPanel(hsvPath, 640, height / 2 - 5, width / 2 - 320, height / 2 + 5, debug, false, Color.WHITE);
         handPanel.setGameHandler(handler);
-        handPanel.setBounds(320, height / 2 + 5, width, height / 2 - 5);
+        handPanel.setBounds(0, height / 2 + 5, width, height / 2 - 5);
+        handPanel.addKeyListener(window);
+        handPanel.setFrame(frame);
+
+        add(handPanel, 1);
+        revalidate();
+    }
+
+    public void pause() {
+        //stop everything
+        handPanel.closeDown();
+        try {
+            //wait for the panel to close
+            handPanel.getHandPanelThread().join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        detector.close();
+        viewer.stop();
+        handler.setVisible(false);
+        setVisible(false);
+    }
+
+    public void start() {
+
+        //init the GestureDetector and start everything
+        detector = new GestureDetector(this, handPanel, handler);
+        handPanel.setVisible(true);
+        setVisible(true);
+        detector.start();
+        viewer.init();
         handPanel.setFocusable(true);
         handPanel.requestFocus();
-        handPanel.addKeyListener(window);
+        handler.setVisible(true);
 
-        detector = new GestureDetector(this, handPanel, handler);
-        detector.start();
-
-        add(handPanel);
-
-        //go fullscreen
-        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0];
-        //device.setFullScreenWindow(this);
-
-        //everything is ready, show the jframe
-        pack();
-        setVisible(true);
-        viewer.init();
-
-        //start listening for console input
-        BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
-
-        String command;
-        while (true) {
-            try {
-                command = console.readLine();
-            } catch (IOException e) {
-                System.out.println("----FEHLER; beende das Programm...----");
-                break;
-            }
-
-            //check if this is a legitimate command
-            if (command.toUpperCase().contentEquals("W")) forward(Speed.SLOW);
-            else if (command.toUpperCase().contentEquals("S")) backward(Speed.SLOW);
-            else if (command.toUpperCase().contentEquals("A")) left(Speed.SLOW);
-            else if (command.toUpperCase().contentEquals("D")) right(Speed.SLOW);
-
-            else if (command.toUpperCase().contentEquals("I")) forward(Speed.FAST);
-            else if (command.toUpperCase().contentEquals("K")) backward(Speed.FAST);
-            else if (command.toUpperCase().contentEquals("J")) left(Speed.FAST);
-            else if (command.toUpperCase().contentEquals("L")) right(Speed.FAST);
-
-            else if (command.contentEquals("")) {
-                brake();
-                straight();
-            } else if (command.toUpperCase().contentEquals("X")) {
-                System.out.println("----Beende das Programm...----");
-                break;
-            }
-        }
+        repaint();
+        frame.repaint();
     }
 
     public void connectToServer(String serverName, int port) {
@@ -330,7 +319,61 @@ public class Main extends JFrame implements OnCalibrationFininshedListener {
     public void paint(Graphics g) {
         super.paint(g);
         //pass this to the game handler in case it needs to display something
-        handler.paint((Graphics2D) g);
+        if (handler != null) handler.paint((Graphics2D) g);
+    }
+
+    public void setFrame(Frame frame) {
+        this.frame = frame;
+    }
+
+    public GameHandler getHandler() {
+        return handler;
+    }
+
+    @Override
+    public void run() {
+
+        //start listening for console input
+        BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
+
+        String command;
+        while (true) {
+            try {
+                command = console.readLine();
+            } catch (IOException e) {
+                System.out.println("----FEHLER; beende das Programm...----");
+                break;
+            }
+
+            //check if this is a legitimate command
+            if (command.toUpperCase().contentEquals("W")) forward(Speed.SLOW);
+            else if (command.toUpperCase().contentEquals("S")) backward(Speed.SLOW);
+            else if (command.toUpperCase().contentEquals("A")) left(Speed.SLOW);
+            else if (command.toUpperCase().contentEquals("D")) right(Speed.SLOW);
+
+            else if (command.toUpperCase().contentEquals("I")) forward(Speed.FAST);
+            else if (command.toUpperCase().contentEquals("K")) backward(Speed.FAST);
+            else if (command.toUpperCase().contentEquals("J")) left(Speed.FAST);
+            else if (command.toUpperCase().contentEquals("L")) right(Speed.FAST);
+
+            else if (command.contentEquals("")) {
+                brake();
+                straight();
+            } else if (command.toUpperCase().contentEquals("X")) {
+                System.out.println("----Beende das Programm...----");
+                break;
+            }
+        }
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+        return new Dimension(width, height);
+    }
+
+    @Override
+    public Dimension getMinimumSize() {
+        return new Dimension(width, height);
     }
 
     public enum Speed {SLOW, FAST}

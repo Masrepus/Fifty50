@@ -20,7 +20,7 @@ public class GestureDetector extends Thread {
     private int smoothAngle = 0;
     private int smoothFingers = 0;
     private Point handPosition;
-    private Point center;
+    private volatile Point center;
     private int brakeZoneHeight;
 
     private Direction currDirection = Direction.STRAIGHT;
@@ -147,6 +147,8 @@ public class GestureDetector extends Thread {
 
     public void close() {
         isRunning = false;
+        //reset center
+        center = null;
     }
 
     private class Calibrator extends Thread {
