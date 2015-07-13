@@ -273,21 +273,4 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         return new Dimension(width, height);
     }
 
-    private class BackgroundPanel extends JPanel {
-
-        Image background;
-        private int width, height;
-
-        public BackgroundPanel(Image background, int width, int height) {
-            this.background = background;
-            this.width = width;
-            this.height = height;
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            g.drawImage(background, 0, 0, width, height, null);
-        }
-    }
 }

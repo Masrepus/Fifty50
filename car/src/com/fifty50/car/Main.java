@@ -12,12 +12,16 @@ import java.net.SocketTimeoutException;
  */
 public class Main {
 
+    private DataOutputStream out;
+
     public static enum Speed {SLOW, FAST}
     public static enum Mode {FORWARD, BACKWARD, LEFT, RIGHT}
 
+	private ServerSocket serverSocket;
     private GpioController gpio;
     private GpioPinDigitalOutput forward_fast, backward_fast, left_fast, right_fast;
     private GpioPinDigitalOutput forward_slow, backward_slow, left_slow, right_slow;
+    private GpioPinDigitalInput inductive_in;
 
     private boolean finish = false;
 
@@ -69,6 +73,7 @@ public class Main {
             else if (command.toUpperCase().contentEquals("K")) main.backward(Speed.FAST);
             else if (command.toUpperCase().contentEquals("J")) main.left(Speed.FAST);
             else if (command.toUpperCase().contentEquals("L")) main.right(Speed.FAST);
+            else if (command.toUpperCase().contentEquals("F")) main.sendFinish();
 
             else if (command.contentEquals("")) {
                 main.brake();
@@ -81,6 +86,17 @@ public class Main {
             }
         }
         main.stop();
+    }
+
+    private void sendFinish() {
+        try {
+            //notify the client
+            out.writeUTF("finish");
+            System.out.println("finish gesendet!");
+        } catch (IOException e) {
+            System.out.println("Konnte Nachricht nicht übermitteln!\n");
+            e.printStackTrace();
+        }
     }
 
     public Main() {
@@ -97,6 +113,12 @@ public class Main {
         backward_slow = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_05, "Backward slow", PinState.LOW);
         left_slow = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_06, "Left slow", PinState.LOW);
         right_slow = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_01, "Right slow", PinState.LOW);
+
+        //provision gpio 27 as inductive sensor input pin
+        inductive_in = gpio.provisionDigitalInputPin(RaspiPin.GPIO_27, "Inductive in");
+
+        //start listening for sensor input
+        new SensorListener().start();
     }
 
 	private void startServer(int port) {
@@ -230,7 +252,7 @@ public class Main {
                             + client.getRemoteSocketAddress());
 
                     DataInputStream in = new DataInputStream(client.getInputStream());
-                    DataOutputStream out = new DataOutputStream(client.getOutputStream());
+                    out = new DataOutputStream(client.getOutputStream());
 
                     //wait for commands from the client
                     String command = "";
@@ -259,6 +281,28 @@ public class Main {
                     }
                 } catch (SocketTimeoutException s) {}
                 catch (IOException e) {}
+            }
+        }
+    }
+
+    private class SensorListener extends Thread {
+
+        @Override
+        public void run() {
+
+            while (!finish) {
+
+                if (inductive_in.isLow()) {
+
+                    //if the induction sensor is on 0V it has detected metal => finish line
+                    try {
+                        //notify the client
+                        out.writeUTF("finish");
+                    } catch (IOException e) {
+                        System.err.println("Konnte Nachricht nicht übermitteln!\n");
+                        e.printStackTrace();
+                    }
+                }
             }
         }
     }

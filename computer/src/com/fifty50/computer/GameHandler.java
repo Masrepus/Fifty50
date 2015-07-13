@@ -3,12 +3,14 @@ package com.fifty50.computer;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.Clock;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -17,6 +19,8 @@ import java.util.TimerTask;
  */
 public class GameHandler implements OnCalibrationFininshedListener {
 
+    public static final int MAX_TIME_MILLIS = 60000;
+    public static final int POINTS_PER_SEC = 100;
     private final Main main;
     private boolean isRunning = false;
     private volatile BufferedImage image;
@@ -25,6 +29,9 @@ public class GameHandler implements OnCalibrationFininshedListener {
     private JDialog countdownDialog, timerDialog;
     private JLabel imgLabel, timerLabel;
     private int millis;
+    private int score;
+    private String photoFnm;
+    private Timer raceTimer;
 
     public GameHandler(Main main, String path) {
         this.main = main;
@@ -79,7 +86,7 @@ public class GameHandler implements OnCalibrationFininshedListener {
                         timer.cancel();
                         //start the game!
                         isRunning = true;
-                        new GameLoop().start();
+                        new GameFlow().start();
                         break;
                 }
 
@@ -106,10 +113,36 @@ public class GameHandler implements OnCalibrationFininshedListener {
         }, 1000, 1000);
     }
 
-    private class GameLoop extends Thread {
+    public void gameFinished() {
+
+        //calculate the score based on the elapsed time
+        score = (MAX_TIME_MILLIS - millis) * POINTS_PER_SEC/1000;
+
+        //stop the countdown
+        raceTimer.cancel();
+        timerDialog.setVisible(false);
+
+        //display the game-over panel
+        main.getFrame().switchMode(Frame.Mode.GAMEOVER);
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public String getPhotoFnm() {
+        return photoFnm;
+    }
+
+    private class GameFlow extends Thread {
 
         @Override
         public void run() {
+
+            showTimer();
+        }
+
+        private void showTimer() {
 
             //display a dialog in the upper right corner that shows the elapsed time
             timerDialog = new JDialog(main.getFrame());
@@ -127,17 +160,47 @@ public class GameHandler implements OnCalibrationFininshedListener {
             timerDialog.setVisible(true);
 
             //start the time measurements
-            Timer raceTimer = new Timer();
+            raceTimer = new Timer();
             raceTimer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
 
                     //update the elapsed time
                     millis += 10;
+
+                    //after 10 seconds take the action photo
+                    if (millis == 10000) takePhoto();
+
                     SimpleDateFormat format = new SimpleDateFormat("mm:ss.SSS");
                     timerLabel.setText(format.format(millis));
                 }
             }, 10, 10);
+        }
+
+        private void takePhoto() {
+
+            //get the current image from handpanel and save it
+            BufferedImage actionImg = main.getHandpanel().getCurrImg();
+
+            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy-HH-mm-ss");
+            Date date = new Date();
+            photoFnm = format.format(date) + ".jpg";
+
+            if (actionImg != null) try {
+
+                //scale the img down to half the size in order to save space
+                BufferedImage actionImgScaled = new BufferedImage(actionImg.getWidth()/2, actionImg.getHeight()/2, actionImg.getType());
+                AffineTransform at = new AffineTransform();
+                at.scale(0.5, 0.5);
+
+                AffineTransformOp scaleOp =
+                        new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+                actionImgScaled = scaleOp.filter(actionImg, actionImgScaled);
+
+                ImageIO.write(actionImgScaled, "JPEG", new File(main.getPath() + photoFnm));
+            } catch (IOException e) {
+                System.out.println("Konnte Actionfoto nicht speichern!");
+            }
         }
     }
 }

@@ -14,6 +14,7 @@ public class Frame extends JFrame {
     private String[] args;
     private Starter starter;
     private Main main;
+    private GameOver gameOver;
     private boolean gameHasRun;
 
     public enum Mode {STARTSCREEN, GAME, GAMEOVER}
@@ -55,6 +56,11 @@ public class Frame extends JFrame {
         background.add(starter, 0);
         background.revalidate();
 
+        //init the game over screen
+        gameOver = new GameOver(args[3]);
+        background.add(gameOver, 0);
+        background.revalidate();
+
         setUndecorated(true);
         pack();
         background.repaint();
@@ -83,8 +89,15 @@ public class Frame extends JFrame {
             case STARTSCREEN:
                 main.setVisible(false);
                 main.pause();
+                gameOver.setVisible(false);
                 starter.setVisible(true);
                 starter.restart();
+                break;
+            case GAMEOVER:
+                main.setVisible(false);
+                main.pause();
+                gameOver.display(main.getHandler().getScore(), main.getHandler().getPhotoFnm());
+                break;
         }
     }
 

@@ -21,6 +21,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
     private GestureDetector detector;
     private DataOutputStream out;
+    private DataInputStream in;
     private GameWindow window;
     private HandPanel handPanel;
     private GameHandler handler;
@@ -29,6 +30,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
     private Frame frame;
     private boolean hasRun = false;
     private int width, height;
+    private String path;
 
     public Main(String[] args) {
         this.args = args;
@@ -38,6 +40,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
         hasRun = true;
 
+        path = args[3];
         String hsvPath = args[3] + "hand.txt";
         boolean debug = false;
         if (args.length == 5) debug = Boolean.parseBoolean(args[4]);
@@ -174,6 +177,8 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
     public void connectToServer(String serverName, int port) {
         new Connector(serverName, port).start();
+        //start listening for server messages
+        new ServerListener().start();
     }
 
     public void straight() {
@@ -376,6 +381,14 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         return new Dimension(width, height);
     }
 
+    public HandPanel getHandpanel() {
+        return handPanel;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
     public enum Speed {SLOW, FAST}
 
     private class Connector extends Thread {
@@ -391,7 +404,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         @Override
         public void run() {
 
-            //try to connect to the car; sleep and retry if connection fails
+            //try to establish a two-way connection to the car; sleep and retry if connection fails
             boolean connected = false;
 
             while (!connected) {
@@ -402,6 +415,9 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
                     OutputStream outToServer = client.getOutputStream();
                     out = new DataOutputStream(outToServer);
+
+                    InputStream inFromServer = client.getInputStream();
+                    in = new DataInputStream(inFromServer);
                     connected = true;
 
                     //message!
@@ -414,6 +430,28 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
                     }
                     connected = false;
                 }
+            }
+        }
+    }
+
+    private class ServerListener extends Thread {
+
+        @Override
+        public void run() {
+
+            //listen for incoming messages from the car
+            String message;
+            while(true) {
+
+                try {
+                    message = in.readUTF();
+
+                    if (message.contentEquals("finish")) {
+                        System.out.println("finish empfangen!");
+                        handler.gameFinished();
+                    }
+
+                } catch (Exception ignored) {}
             }
         }
     }

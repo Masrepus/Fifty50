@@ -57,6 +57,10 @@ public class GameWindow implements KeyListener {
             case KeyEvent.VK_ENTER:
                 main.requestCalibration();
                 break;
+
+            case KeyEvent.VK_F:
+                main.getHandler().gameFinished();
+                break;
         }
     }
 
