@@ -31,9 +31,16 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
     private boolean hasRun = false;
     private int width, height;
     private String path;
+    private enum State {LOW, HIGH;
+        public static State parse(String s) {
+            return (s.toUpperCase().contentEquals("LOW")) ? LOW : HIGH;
+        }
+    }
+    private volatile State fwdFast, fwdSlow, bwdFast, bwdSlow, leftFast, leftSlow, rightFast, rightSlow;
 
     public Main(String[] args) {
         this.args = args;
+        fwdFast = fwdSlow = bwdFast = bwdSlow = leftFast = leftSlow = rightFast = rightSlow = State.LOW;
     }
 
     public void init() {
@@ -182,12 +189,22 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
     }
 
     public void straight() {
-        brake();
+        if (leftFast == State.LOW && rightFast == State.LOW && leftSlow == State.LOW && rightSlow == State.LOW) return;
+        try {
+            out.writeUTF("straight");
+            leftFast = rightFast = leftSlow = rightSlow = State.LOW;
+            System.out.println("gerade");
+        } catch (IOException e) {
+            System.out.println("Fehler beim Senden des Befehls");
+        }
     }
 
     public void brake() {
+        if (fwdFast == State.LOW && fwdSlow == State.LOW && bwdSlow == State.LOW && bwdFast == State.LOW) return;
         try {
             out.writeUTF("");
+            fwdSlow = fwdFast = bwdSlow = bwdFast = State.LOW;
+            System.out.println("bremsen");
         } catch (IOException e) {
             System.out.println("Fehler beim Senden des Befehls");
         }
@@ -202,9 +219,15 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
             case FAST:
             default:
+                if (rightFast == State.HIGH) return;
+                rightFast = State.HIGH;
+                rightSlow = leftFast = leftSlow = State.LOW;
                 command = "L";
                 break;
             case SLOW:
+                if (rightSlow == State.HIGH) return;
+                rightSlow = State.HIGH;
+                rightFast = leftFast = leftSlow = State.LOW;
                 command = "D";
                 break;
         }
@@ -212,6 +235,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         try {
             //send the command to the car
             out.writeUTF(command);
+            System.out.println(command);
         } catch (IOException e) {
             System.out.println("Fehler beim Senden des Befehls " + command);
         }
@@ -226,9 +250,15 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
             case FAST:
             default:
+                if (leftFast == State.HIGH) return;
+                leftFast = State.HIGH;
+                leftSlow = rightFast = rightSlow = State.LOW;
                 command = "J";
                 break;
             case SLOW:
+                if (leftSlow == State.HIGH) return;
+                leftSlow = State.HIGH;
+                leftFast = rightFast = rightSlow = State.LOW;
                 command = "A";
                 break;
         }
@@ -236,6 +266,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         try {
             //send the command to the car
             out.writeUTF(command);
+            System.out.println(command);
         } catch (IOException e) {
             System.out.println("Fehler beim Senden des Befehls " + command);
         }
@@ -250,9 +281,15 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
             case FAST:
             default:
+                if (bwdFast == State.HIGH) return;
+                bwdFast = State.HIGH;
+                bwdSlow = fwdSlow = fwdFast = State.LOW;
                 command = "K";
                 break;
             case SLOW:
+                if (bwdSlow == State.HIGH) return;
+                bwdSlow = State.HIGH;
+                bwdFast = fwdSlow = fwdFast = State.LOW;
                 command = "S";
                 break;
         }
@@ -260,6 +297,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         try {
             //send the command to the car
             out.writeUTF(command);
+            System.out.println(command);
         } catch (IOException e) {
             System.out.println("Fehler beim Senden des Befehls " + command);
         }
@@ -274,9 +312,15 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
             case FAST:
             default:
+                if (fwdFast == State.HIGH) return;
+                fwdFast = State.HIGH;
+                fwdSlow = bwdFast = bwdSlow = State.LOW;
                 command = "I";
                 break;
             case SLOW:
+                if (fwdSlow == State.HIGH) return;
+                fwdSlow = State.HIGH;
+                fwdFast = bwdSlow = bwdFast = State.LOW;
                 command = "W";
                 break;
         }
@@ -284,6 +328,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         try {
             //send the command to the car
             out.writeUTF(command);
+            System.out.println(command);
         } catch (IOException e) {
             System.out.println("Fehler beim Senden des Befehls " + command);
         }
@@ -450,6 +495,16 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
                         System.out.println("finish empfangen!");
                         handler.gameFinished();
                     }
+
+                    //listen for pin state changes
+                    else if (message.contains("fwd fast")) fwdFast = Main.State.parse(message.split("\\s+")[2]);
+                    else if (message.contains("fwd slow")) fwdSlow = Main.State.parse(message.split("\\s+")[2]);
+                    else if (message.contains("bwd fast")) bwdFast = Main.State.parse(message.split("\\s+")[2]);
+                    else if (message.contains("bwd slow")) bwdSlow = Main.State.parse(message.split("\\s+")[2]);
+                    else if (message.contains("left fast")) leftFast = Main.State.parse(message.split("\\s+")[2]);
+                    else if (message.contains("left slow")) leftSlow = Main.State.parse(message.split("\\s+")[2]);
+                    else if (message.contains("right fast")) rightFast = Main.State.parse(message.split("\\s+")[2]);
+                    else if (message.contains("right slow")) rightSlow = Main.State.parse(message.split("\\s+")[2]);
 
                 } catch (Exception ignored) {}
             }
