@@ -312,6 +312,8 @@ public class HandPanel extends JPanel implements Runnable {
     public void setGestureDetector(GestureDetector gestureDetector) {
         this.gestureDetector = gestureDetector;
 
+        isCalibrated = false;
+
         handPanelThread = new Thread(this);
         // start updating the panel's image beacuse the gesture detector is ready
         handPanelThread.start();

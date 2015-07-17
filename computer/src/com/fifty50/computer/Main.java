@@ -163,6 +163,12 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
             e.printStackTrace();
         }
         detector.close();
+        try {
+            //wait for the detector to close
+            detector.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         viewer.stop();
         setVisible(false);
     }
@@ -177,6 +183,26 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         viewer.init();
         handPanel.setFocusable(true);
         handPanel.requestFocus();
+
+        repaint();
+        frame.repaint();
+    }
+
+    public void restart() {
+
+        //restart the hand panel and the other components
+        handPanel.setIsCalibrated(false);
+        new Thread(handPanel).start();
+        handPanel.setVisible(true);
+
+        setVisible(true);
+
+        new Thread(detector).start();
+        viewer.init();
+        handPanel.setFocusable(true);
+        handPanel.requestFocus();
+
+        handler.reset();
 
         repaint();
         frame.repaint();

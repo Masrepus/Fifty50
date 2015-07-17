@@ -250,12 +250,16 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
     public void restart() {
 
         isFinished = false;
+        isRunning = true;
         //restart the handpanel and the repainting
-        new Thread(handPanel).start();
+        detector = handPanel.getDetector();
+        handPanelThread = new Thread(handPanel);
+        handPanelThread.start();
         new Thread(this).start();
 
         addKeyListener(this);
-
+        setFocusable(true);
+        requestFocus();
         setVisible(true);
     }
 

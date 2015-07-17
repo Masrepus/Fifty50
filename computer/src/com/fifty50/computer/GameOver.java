@@ -8,8 +8,8 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.*;
+import java.util.Timer;
 
 /**
  * Created by samuel on 06.07.15.
@@ -20,12 +20,15 @@ public class GameOver extends JLayeredPane implements Runnable {
     private JLabel imgLabel, scoreLabel;
     private String path;
     private String photoFnm;
+    private Frame frame;
 
-    public GameOver(String path) {
+    public GameOver(Frame frame, String path) {
 
         Toolkit tk = Toolkit.getDefaultToolkit();
         width = tk.getScreenSize().width;
         height = tk.getScreenSize().height;
+
+        this.frame = frame;
 
         this.path = path;
 
@@ -83,6 +86,15 @@ public class GameOver extends JLayeredPane implements Runnable {
 
         setFocusable(true);
         requestFocus();
+
+        //start timer
+        java.util.Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                frame.switchMode(Frame.Mode.STARTSCREEN);
+            }
+        }, 10000);
     }
 
     private void displayScore(int score) {

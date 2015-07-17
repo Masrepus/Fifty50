@@ -188,6 +188,6 @@ public class GestureDetector extends Thread {
         }
     }
 
-    public static enum Direction {LEFT, RIGHT, STRAIGHT}
-    public static enum Speed {ACCELERATE, BRAKE}
+    public enum Direction {LEFT, RIGHT, STRAIGHT}
+    public enum Speed {ACCELERATE, BRAKE}
 }

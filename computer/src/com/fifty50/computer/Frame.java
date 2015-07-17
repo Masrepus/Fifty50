@@ -19,7 +19,7 @@ public class Frame extends JFrame {
 
     public enum Mode {STARTSCREEN, GAME, GAMEOVER}
 
-    public Frame(/*Starter starter,*/ String[] args) {
+    public Frame(String[] args) {
 
         super("Fifty50 Racing");
 
@@ -57,7 +57,7 @@ public class Frame extends JFrame {
         background.revalidate();
 
         //init the game over screen
-        gameOver = new GameOver(args[3]);
+        gameOver = new GameOver(this, args[3]);
         background.add(gameOver, 0);
         background.revalidate();
 
@@ -82,16 +82,16 @@ public class Frame extends JFrame {
                 starter.pause();
                 repaint();
                 main.setVisible(true);
-                main.start();
+                if (gameHasRun) main.restart();
+                else main.start();
 
                 gameHasRun = true;
                 break;
             case STARTSCREEN:
-                main.setVisible(false);
-                main.pause();
                 gameOver.setVisible(false);
                 starter.setVisible(true);
                 starter.restart();
+                repaint();
                 break;
             case GAMEOVER:
                 main.setVisible(false);
@@ -103,5 +103,9 @@ public class Frame extends JFrame {
 
     public static void main(String[] args) {
         new Frame(args);
+    }
+
+    public boolean hasGameRun() {
+        return gameHasRun;
     }
 }

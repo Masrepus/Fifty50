@@ -134,6 +134,13 @@ public class GameHandler implements OnCalibrationFininshedListener {
         return photoFnm;
     }
 
+    public void reset() {
+
+        millis = 0;
+        score = 0;
+        photoFnm = "";
+    }
+
     private class GameFlow extends Thread {
 
         @Override
