@@ -19,6 +19,7 @@ import java.util.TimerTask;
  */
 public class Starter extends JLayeredPane implements Runnable, ActionListener, KeyListener {
 
+    private Main main;
     private HandDetector detector;
     private JButton start;
     private HandPanel handPanel;
@@ -34,8 +35,9 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
     private double lastCogX, lastCogY;
     private Thread handPanelThread;
 
-    public Starter(String[] argsMain) {
+    public Starter(Main main, String[] argsMain) {
 
+        this.main = main;
         this.argsMain = argsMain;
         isRunning = true;
 
@@ -158,7 +160,7 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
     public static void main(String[] args) {
 
         if (args.length == 2 && args[0].contentEquals("hsvSelector")) new HSVSelector(args[1]);
-        else new Starter(args);
+        else new Starter(new Main(args), args);
     }
 
     @Override
@@ -204,22 +206,39 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-            //start the main game screen
-            isFinished = true;
-            handPanel.closeDown();
 
-            //wait for the hand detector to finish
-            while (!handPanel.isFinished()) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-            }
+        switch (e.getKeyCode()) {
 
-            //tell the frame to start the game
-            frame.switchMode(Frame.Mode.GAME);
+            //keyboard controls for debugging
+            case KeyEvent.VK_W:
+                main.forward(Main.Speed.SLOW);
+                break;
+            case KeyEvent.VK_A:
+                main.left(Main.Speed.SLOW);
+                break;
+            case KeyEvent.VK_S:
+                main.backward(Main.Speed.SLOW);
+                break;
+            case KeyEvent.VK_D:
+                main.right(Main.Speed.SLOW);
+                break;
+
+            case KeyEvent.VK_UP:
+                main.forward(Main.Speed.FAST);
+                break;
+            case KeyEvent.VK_LEFT:
+                main.left(Main.Speed.FAST);
+                break;
+            case KeyEvent.VK_DOWN:
+                main.backward(Main.Speed.FAST);
+                break;
+            case KeyEvent.VK_RIGHT:
+                main.right(Main.Speed.FAST);
+                break;
+
+            case KeyEvent.VK_ENTER:
+                main.brake();
+                break;
         }
     }
 

@@ -49,7 +49,7 @@ public class Frame extends JFrame {
         background.revalidate();
 
         //init the start screen
-        starter = new Starter(args);
+        starter = new Starter(main, args);
         starter.setBounds(0, 0, width, height);
         starter.setVisible(true);
         starter.setFrame(this);
