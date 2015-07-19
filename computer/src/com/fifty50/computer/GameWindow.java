@@ -69,14 +69,16 @@ public class GameWindow implements KeyListener {
 
         switch (e.getKeyCode()) {
 
-            //if the released key was an accelerating one, then brake; else just stop steering
-            case KeyEvent.VK_UP:
-            case KeyEvent.VK_DOWN:
             case KeyEvent.VK_W:
+            case KeyEvent.VK_UP:
             case KeyEvent.VK_S:
+            case KeyEvent.VK_DOWN:
                 main.brake();
                 break;
-            default:
+            case KeyEvent.VK_A:
+            case KeyEvent.VK_LEFT:
+            case KeyEvent.VK_D:
+            case KeyEvent.VK_RIGHT:
                 main.straight();
                 break;
         }

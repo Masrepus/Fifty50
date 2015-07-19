@@ -77,7 +77,7 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         handPanel.setStarter(this);
 
         String bgImg = "hintergrund";
-        if (tk.getScreenSize().width/tk.getScreenSize().height == 5/4) bgImg += "_54.png";
+        if (tk.getScreenSize().width / tk.getScreenSize().height == 5 / 4) bgImg += "_54.png";
         else bgImg += ".png";
         try {
             BackgroundPanel background = new BackgroundPanel(ImageIO.read(new File(path + bgImg)), width, height);
@@ -115,7 +115,7 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
             cogSmoothY = (cog.y * smoothing) + (cogSmoothY * (1.0 - smoothing));
 
             g2d.setColor(Color.BLUE);
-            g2d.fillOval((int)cogSmoothX - 8, (int)cogSmoothY - 8, 16, 16);
+            g2d.fillOval((int) cogSmoothX - 8, (int) cogSmoothY - 8, 16, 16);
 
             //check if the cogCircle is inside the start button
             if (start.getBounds().contains(cog)) {
@@ -244,6 +244,22 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
 
     @Override
     public void keyReleased(KeyEvent e) {
+
+        switch (e.getKeyCode()) {
+
+            case KeyEvent.VK_W:
+            case KeyEvent.VK_UP:
+            case KeyEvent.VK_S:
+            case KeyEvent.VK_DOWN:
+                main.brake();
+                break;
+            case KeyEvent.VK_A:
+            case KeyEvent.VK_LEFT:
+            case KeyEvent.VK_D:
+            case KeyEvent.VK_RIGHT:
+                main.straight();
+                break;
+        }
 
     }
 

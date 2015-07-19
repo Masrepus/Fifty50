@@ -136,6 +136,7 @@ public class GameHandler implements OnCalibrationFininshedListener {
 
     public void reset() {
 
+        //TODO zeit läuft beim zweiten mal schneller
         millis = 0;
         score = 0;
         photoFnm = "";
