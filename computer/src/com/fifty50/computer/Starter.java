@@ -9,8 +9,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -34,6 +40,7 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
     private double smoothing = 0.05, cogSmoothX, cogSmoothY;
     private double lastCogX, lastCogY;
     private Thread handPanelThread;
+    private HighscoreLoop highscoreLoop;
 
     public Starter(Main main, String[] argsMain) {
 
@@ -89,6 +96,9 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         }
 
         add(start, 2, 0);
+
+        highscoreLoop = new HighscoreLoop();
+        highscoreLoop.init();
 
         setVisible(true);
 
@@ -154,6 +164,7 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
                     timerRunning = false;
                 }
             }
+            highscoreLoop.paintLabels(g);
         }
     }
 
@@ -170,7 +181,6 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
             repaint();
 
             try {
-
                 Thread.sleep(17);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -292,6 +302,9 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         handPanelThread.start();
         new Thread(this).start();
 
+        //re-init the highscore loop
+        highscoreLoop.reset();
+
         addKeyListener(this);
         setFocusable(true);
         requestFocus();
@@ -310,6 +323,110 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
     @Override
     public Dimension getMinimumSize() {
         return new Dimension(width, height);
+    }
+
+    private class HighscoreLoop {
+
+        private double SPEED = 0.1;
+        private ArrayList<BufferedImage> top10 = new ArrayList<BufferedImage>();
+        private ArrayList<String> scores = new ArrayList<String>();
+        private double x_offset;
+        private long lastPaint;
+
+        public void init() {
+
+            try {
+                //read the ranking file
+                BufferedReader reader = new BufferedReader(new FileReader(path + "ranking.txt"));
+                String line;
+                ArrayList<String> players = new ArrayList<String>();
+
+                while ((line = reader.readLine()) != null) {
+                    try {
+                        //add the whole line to the list
+                        players.add(line);
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+
+                reader.close();
+
+                //now sort the list
+                players.sort(new Comparator<String>() {
+                    @Override
+                    public int compare(String o1, String o2) {
+
+                        //sort by score
+                        Integer score1 = Integer.parseInt(o1.split(",")[0]);
+                        Integer score2 = Integer.parseInt(o2.split(",")[0]);
+
+                        return score2.compareTo(score1);
+                    }
+                });
+
+                //fill the array with the top 10 action photos
+                for (int i = 0; i < players.size(); i++) {
+
+                    //load the correct image or the null image
+                    if (players.get(i).split(",")[1].contentEquals("null")) top10.add(ImageIO.read(new File(path + "null.png")));
+                    else top10.add(ImageIO.read(new File(path + players.get(i).split(",")[1])));
+
+                    scores.add(players.get(i).split(",")[0]);
+                }
+
+            } catch (IOException e) {
+                System.out.println("Fehler beim Erstellen der Top10 Foto-Liste");
+            }
+        }
+
+        private void paintLabels(Graphics g) {
+
+            Graphics2D g2d = (Graphics2D) g;
+
+            //calculate where the labels should be at the moment
+            if (lastPaint == 0) lastPaint = System.currentTimeMillis();
+
+            //increase the x offset
+            x_offset += SPEED * (System.currentTimeMillis() - lastPaint);
+
+            g2d.setColor(Color.white);
+            g2d.setFont(new Font(null, Font.BOLD, 15));
+
+            //now paint the images and the text where the labels are
+            for (int i=0; i<top10.size(); i++) {
+
+                int x = (int) Math.round(width + i*340 - x_offset);
+                BufferedImage image = top10.get(i);
+                g2d.drawImage(image, x + (320 - image.getWidth())/2, height - 300 + (240 - image.getHeight())/2, image.getWidth(), image.getHeight(), null);
+
+                //draw score and rank centered underneath/above the image
+                String score = scores.get(i) + "Punkte";
+                g2d.drawString(score, x + 160 - stringLength(score, g2d)/2, height - 340);
+
+                String rank = "Platz " + String.valueOf(i + 1);
+                g2d.drawString(rank, x + 160 - stringLength(rank, g2d)/2, height - 40);
+            }
+
+            lastPaint = System.currentTimeMillis();
+
+            //reset x_offset once the last image has disappeared
+            if (x_offset > width + top10.size()*340) x_offset = 0;
+        }
+
+        private int stringLength(String string, Graphics2D g2d) {
+
+            Rectangle2D stringBounds = getFontMetrics(new Font(null, Font.BOLD, 15)).getStringBounds(string, getGraphics());
+
+            return (int) stringBounds.getWidth();
+        }
+
+        public void reset() {
+
+            top10.clear();
+            scores.clear();
+
+            init();
+        }
     }
 
 }
