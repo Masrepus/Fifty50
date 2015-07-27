@@ -117,6 +117,8 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         super.paint(g);
 
         if (!isFinished) {
+            highscoreLoop.paintLabels(g);
+
             Graphics2D g2d = (Graphics2D) g;
 
             Point cog = detector.getCogFlipped();
@@ -164,7 +166,6 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
                     timerRunning = false;
                 }
             }
-            highscoreLoop.paintLabels(g);
         }
     }
 
