@@ -60,8 +60,8 @@ public class GestureDetector extends Thread {
                     handPosition = detector.getCogPoint();
                     smoothFingers = detector.getFingerTips().size();
 
-                    //accelerate if there are fingers being shown, else brake
-                    if (smoothFingers == 0 || handPosition.y > (panel.getRealHeight() - brakeZoneHeight)) {
+                    //accelerate if there are fingers being shown and the hand is not below the horizontal line, else brake
+                    if (smoothFingers == 0 || handPosition.y > center.y + 10) {
                         currSpeed = Speed.BRAKE;
                     } else currSpeed = Speed.ACCELERATE;
 
@@ -78,7 +78,6 @@ public class GestureDetector extends Thread {
                     } else currDirection = Direction.STRAIGHT;
 
                     //now send the current direction to the car, if it isn't the same as last time
-                    if (currDirection != lastSentCommand) {
                         switch (currDirection) {
 
                             case LEFT:
@@ -91,10 +90,8 @@ public class GestureDetector extends Thread {
                                 main.straight();
                                 break;
                         }
-                    }
 
                     //now send the current speed mode
-                    if (currSpeed != lastSentSpeed) {
                         switch (currSpeed) {
 
                             case ACCELERATE:
@@ -104,7 +101,6 @@ public class GestureDetector extends Thread {
                                 main.brake();
                                 break;
                         }
-                    }
                 } catch (Exception ignored) {
                 }
             }
@@ -192,6 +188,6 @@ public class GestureDetector extends Thread {
         }
     }
 
-    public static enum Direction {LEFT, RIGHT, STRAIGHT}
-    public static enum Speed {ACCELERATE, BRAKE}
+    public enum Direction {LEFT, RIGHT, STRAIGHT}
+    public enum Speed {ACCELERATE, BRAKE}
 }

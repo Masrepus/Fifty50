@@ -19,6 +19,7 @@ import java.util.TimerTask;
  */
 public class Starter extends JLayeredPane implements Runnable, ActionListener, KeyListener {
 
+    private Main main;
     private HandDetector detector;
     private JButton start;
     private HandPanel handPanel;
@@ -34,8 +35,9 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
     private double lastCogX, lastCogY;
     private Thread handPanelThread;
 
-    public Starter(String[] argsMain) {
+    public Starter(Main main, String[] argsMain) {
 
+        this.main = main;
         this.argsMain = argsMain;
         isRunning = true;
 
@@ -75,7 +77,7 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         handPanel.setStarter(this);
 
         String bgImg = "hintergrund";
-        if (tk.getScreenSize().width/tk.getScreenSize().height == 5/4) bgImg += "_54.png";
+        if (tk.getScreenSize().width / tk.getScreenSize().height == 5 / 4) bgImg += "_54.png";
         else bgImg += ".png";
         try {
             BackgroundPanel background = new BackgroundPanel(ImageIO.read(new File(path + bgImg)), width, height);
@@ -113,7 +115,7 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
             cogSmoothY = (cog.y * smoothing) + (cogSmoothY * (1.0 - smoothing));
 
             g2d.setColor(Color.BLUE);
-            g2d.fillOval((int)cogSmoothX - 8, (int)cogSmoothY - 8, 16, 16);
+            g2d.fillOval((int) cogSmoothX - 8, (int) cogSmoothY - 8, 16, 16);
 
             //check if the cogCircle is inside the start button
             if (start.getBounds().contains(cog)) {
@@ -158,7 +160,7 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
     public static void main(String[] args) {
 
         if (args.length == 2 && args[0].contentEquals("hsvSelector")) new HSVSelector(args[1]);
-        else new Starter(args);
+        else new Starter(new Main(args), args);
     }
 
     @Override
@@ -204,27 +206,60 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-            //start the main game screen
-            isFinished = true;
-            handPanel.closeDown();
 
-            //wait for the hand detector to finish
-            while (!handPanel.isFinished()) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-            }
+        switch (e.getKeyCode()) {
 
-            //tell the frame to start the game
-            frame.switchMode(Frame.Mode.GAME);
+            //keyboard controls for debugging
+            case KeyEvent.VK_W:
+                main.forward(Main.Speed.SLOW);
+                break;
+            case KeyEvent.VK_A:
+                main.left(Main.Speed.SLOW);
+                break;
+            case KeyEvent.VK_S:
+                main.backward(Main.Speed.SLOW);
+                break;
+            case KeyEvent.VK_D:
+                main.right(Main.Speed.SLOW);
+                break;
+
+            case KeyEvent.VK_UP:
+                main.forward(Main.Speed.FAST);
+                break;
+            case KeyEvent.VK_LEFT:
+                main.left(Main.Speed.FAST);
+                break;
+            case KeyEvent.VK_DOWN:
+                main.backward(Main.Speed.FAST);
+                break;
+            case KeyEvent.VK_RIGHT:
+                main.right(Main.Speed.FAST);
+                break;
+
+            case KeyEvent.VK_ENTER:
+                main.brake();
+                break;
         }
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
+
+        switch (e.getKeyCode()) {
+
+            case KeyEvent.VK_W:
+            case KeyEvent.VK_UP:
+            case KeyEvent.VK_S:
+            case KeyEvent.VK_DOWN:
+                main.brake();
+                break;
+            case KeyEvent.VK_A:
+            case KeyEvent.VK_LEFT:
+            case KeyEvent.VK_D:
+            case KeyEvent.VK_RIGHT:
+                main.straight();
+                break;
+        }
 
     }
 
@@ -250,12 +285,16 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
     public void restart() {
 
         isFinished = false;
+        isRunning = true;
         //restart the handpanel and the repainting
-        new Thread(handPanel).start();
+        detector = handPanel.getDetector();
+        handPanelThread = new Thread(handPanel);
+        handPanelThread.start();
         new Thread(this).start();
 
         addKeyListener(this);
-
+        setFocusable(true);
+        requestFocus();
         setVisible(true);
     }
 
@@ -273,21 +312,4 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         return new Dimension(width, height);
     }
 
-    private class BackgroundPanel extends JPanel {
-
-        Image background;
-        private int width, height;
-
-        public BackgroundPanel(Image background, int width, int height) {
-            this.background = background;
-            this.width = width;
-            this.height = height;
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            g.drawImage(background, 0, 0, width, height, null);
-        }
-    }
 }

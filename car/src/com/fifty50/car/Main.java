@@ -12,14 +12,19 @@ import java.net.SocketTimeoutException;
  */
 public class Main {
 
+    private DataOutputStream out;
+
     public static enum Speed {SLOW, FAST}
     public static enum Mode {FORWARD, BACKWARD, LEFT, RIGHT}
 
+	private ServerSocket serverSocket;
     private GpioController gpio;
     private GpioPinDigitalOutput forward_fast, backward_fast, left_fast, right_fast;
     private GpioPinDigitalOutput forward_slow, backward_slow, left_slow, right_slow;
+    private GpioPinDigitalInput inductive_in;
 
     private boolean finish = false;
+    private boolean useFinishSensor;
 
     public static void main(String[] args) {
 
@@ -69,6 +74,7 @@ public class Main {
             else if (command.toUpperCase().contentEquals("K")) main.backward(Speed.FAST);
             else if (command.toUpperCase().contentEquals("J")) main.left(Speed.FAST);
             else if (command.toUpperCase().contentEquals("L")) main.right(Speed.FAST);
+            else if (command.toUpperCase().contentEquals("F")) main.sendFinish();
 
             else if (command.contentEquals("")) {
                 main.brake();
@@ -81,6 +87,17 @@ public class Main {
             }
         }
         main.stop();
+    }
+
+    private void sendFinish() {
+        try {
+            //notify the client
+            out.writeUTF("finish");
+            System.out.println("finish gesendet!");
+        } catch (IOException e) {
+            System.out.println("Konnte Nachricht nicht übermitteln!\n");
+            e.printStackTrace();
+        }
     }
 
     public Main() {
@@ -97,6 +114,12 @@ public class Main {
         backward_slow = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_05, "Backward slow", PinState.LOW);
         left_slow = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_06, "Left slow", PinState.LOW);
         right_slow = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_01, "Right slow", PinState.LOW);
+
+        //provision gpio 27 as inductive sensor input pin
+        inductive_in = gpio.provisionDigitalInputPin(RaspiPin.GPIO_27, "Inductive in");
+
+        //start listening for sensor input
+        new SensorListener().start();
     }
 
 	private void startServer(int port) {
@@ -117,13 +140,31 @@ public class Main {
         //turn on the correct forward pin
         switch (speed) {
             case SLOW:
+                if (forward_slow.isHigh()) return;
+                if (out != null) {
+                    try {
+                        out.writeUTF("fwd slow high");
+                        out.writeUTF("fwd fast low");
+                    } catch (IOException ignored) {}
+                }
                 forward_slow.high();
                 forward_fast.low();
+                backward_fast.low();
+                backward_slow.low();
                 intensity = "schwach";
                 break;
             case FAST:
+                if (forward_fast.isHigh()) return;
+                if (out != null) {
+                    try {
+                        out.writeUTF("fwd fast high");
+                        out.writeUTF("fwd slow low");
+                    } catch (IOException ignored) {}
+                }
                 forward_fast.high();
                 forward_slow.low();
+                backward_slow.low();
+                backward_fast.low();
                 intensity = "stark";
                 break;
         }
@@ -135,13 +176,31 @@ public class Main {
         //turn on the correct backward pin
         switch (speed) {
             case SLOW:
+                if (backward_slow.isHigh()) return;
+                if (out != null) {
+                    try {
+                        out.writeUTF("bwd slow high");
+                        out.writeUTF("bwd fast low");
+                    } catch (IOException ignored) {}
+                }
                 backward_slow.high();
                 backward_fast.low();
+                forward_slow.low();
+                forward_fast.low();
                 intensity = "schwach";
                 break;
             case FAST:
+                if (backward_fast.isHigh()) return;
+                if (out != null) {
+                    try {
+                        out.writeUTF("bwd fast high");
+                        out.writeUTF("bwd slow low");
+                    } catch (IOException ignored) {}
+                }
                 backward_fast.high();
                 backward_slow.low();
+                forward_fast.low();
+                forward_slow.low();
                 intensity = "stark";
                 break;
         }
@@ -153,13 +212,31 @@ public class Main {
         //turn on the correct left pin
         switch (speed) {
             case SLOW:
+                if (left_slow.isHigh()) return;
+                if (out != null) {
+                    try {
+                        out.writeUTF("left slow high");
+                        out.writeUTF("left fast low");
+                    } catch (IOException ignored) {}
+                }
                 left_slow.high();
                 left_fast.low();
+                right_fast.low();
+                right_slow.low();
                 intensity = "schwach";
                 break;
             case FAST:
+                if (left_fast.isHigh()) return;
+                if (out != null) {
+                    try {
+                        out.writeUTF("left fast high");
+                        out.writeUTF("left slow low");
+                    } catch (IOException ignored) {}
+                }
                 left_fast.high();
                 left_slow.low();
+                right_slow.low();
+                right_fast.low();
                 intensity = "stark";
                 break;
         }
@@ -171,13 +248,31 @@ public class Main {
         //turn on the correct right pin
         switch (speed) {
             case SLOW:
+                if (right_slow.isHigh()) return;
+                if (out != null) {
+                    try {
+                        out.writeUTF("right slow high");
+                        out.writeUTF("right fast low");
+                    } catch (IOException ignored) {}
+                }
                 right_slow.high();
                 right_fast.low();
+                left_fast.low();
+                left_slow.low();
                 intensity = "schwach";
                 break;
             case FAST:
+                if (right_fast.isHigh()) return;
+                if (out != null) {
+                    try {
+                        out.writeUTF("right fast high");
+                        out.writeUTF("right slow low");
+                    } catch (IOException ignored) {}
+                }
                 right_fast.high();
                 right_slow.low();
+                left_fast.low();
+                left_slow.low();
                 intensity = "stark";
                 break;
         }
@@ -186,6 +281,16 @@ public class Main {
 
     private void brake() {
         //turn off all accelerating pins
+        if (out != null) {
+            try {
+                out.writeUTF("fwd slow low");
+                out.writeUTF("fwd fast low");
+
+                out.writeUTF("bwd slow low");
+                out.writeUTF("bwd fast low");
+            } catch (IOException ignored) {}
+        }
+
         forward_slow.low();
         forward_fast.low();
 
@@ -196,6 +301,16 @@ public class Main {
 
     private void straight() {
         //turn off all steering pins
+        if (out != null) {
+            try {
+                out.writeUTF("right slow low");
+                out.writeUTF("right fast low");
+
+                out.writeUTF("left slow low");
+                out.writeUTF("left fast low");
+            } catch (IOException ignored) {}
+        }
+
         right_slow.low();
         right_fast.low();
 
@@ -216,12 +331,17 @@ public class Main {
         public Server(Main main, int port) throws IOException
         {
             serverSocket = new ServerSocket(port);
+            serverSocket.setReuseAddress(true);
             this.main = main;
         }
 
         public void run() {
             while (!finish) {
                 try {
+                    //stop all commands
+                    brake();
+                    straight();
+
                     System.out.println("Warte auf Client (Port " +
                             serverSocket.getLocalPort() + ")");
 
@@ -230,7 +350,7 @@ public class Main {
                             + client.getRemoteSocketAddress());
 
                     DataInputStream in = new DataInputStream(client.getInputStream());
-                    DataOutputStream out = new DataOutputStream(client.getOutputStream());
+                    out = new DataOutputStream(client.getOutputStream());
 
                     //wait for commands from the client
                     String command = "";
@@ -248,6 +368,11 @@ public class Main {
                         else if (command.toUpperCase().contentEquals("J")) main.left(Speed.FAST);
                         else if (command.toUpperCase().contentEquals("L")) main.right(Speed.FAST);
 
+                        else if (command.contentEquals("straight")) main.straight();
+
+                        else if (command.contentEquals("enable-finish-sensor")) new SensorListener().start();
+                        else if (command.contentEquals("disable-finish-sensor")) useFinishSensor = false;
+
                         else if (command.contentEquals("")) {
                             main.brake();
                             main.straight();
@@ -259,6 +384,28 @@ public class Main {
                     }
                 } catch (SocketTimeoutException s) {}
                 catch (IOException e) {}
+            }
+        }
+    }
+
+    private class SensorListener extends Thread {
+
+        @Override
+        public void run() {
+
+            while (useFinishSensor) {
+
+                if (inductive_in.isLow()) {
+
+                    //if the induction sensor is on 0V it has detected metal => finish line
+                    try {
+                        //notify the client
+                        if (out != null) out.writeUTF("finish");
+                    } catch (IOException e) {
+                        System.err.println("Konnte Nachricht nicht übermitteln!\n");
+                        e.printStackTrace();
+                    }
+                }
             }
         }
     }

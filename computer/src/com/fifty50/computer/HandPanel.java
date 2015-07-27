@@ -30,6 +30,7 @@ public class HandPanel extends JPanel implements Runnable {
 
 
     private IplImage snapIm = null;
+    private BufferedImage currImg;
     private volatile boolean isRunning;
     private volatile boolean isFinished;
 
@@ -109,6 +110,7 @@ public class HandPanel extends JPanel implements Runnable {
             long startTime = System.currentTimeMillis();
 
             snapIm = picGrab(grabber, CAMERA_ID);
+            if (snapIm != null) currImg = snapIm.getBufferedImage();
             imageCount++;
             detector.update(snapIm);
             repaint();
@@ -310,6 +312,8 @@ public class HandPanel extends JPanel implements Runnable {
     public void setGestureDetector(GestureDetector gestureDetector) {
         this.gestureDetector = gestureDetector;
 
+        isCalibrated = false;
+
         handPanelThread = new Thread(this);
         // start updating the panel's image beacuse the gesture detector is ready
         handPanelThread.start();
@@ -347,6 +351,10 @@ public class HandPanel extends JPanel implements Runnable {
 
     public Thread getHandPanelThread() {
         return handPanelThread;
+    }
+
+    public BufferedImage getCurrImg() {
+        return currImg;
     }
 } // end of HandPanel class
 

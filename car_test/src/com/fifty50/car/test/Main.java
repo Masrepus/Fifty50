@@ -10,6 +10,8 @@ import java.net.SocketTimeoutException;
  */
 public class Main {
 
+    private DataOutputStream out;
+
     public static enum Speed {SLOW, FAST}
     public static enum Mode {FORWARD, BACKWARD, LEFT, RIGHT}
 
@@ -64,6 +66,7 @@ public class Main {
             else if (command.toUpperCase().contentEquals("K")) main.backward(Speed.FAST);
             else if (command.toUpperCase().contentEquals("J")) main.left(Speed.FAST);
             else if (command.toUpperCase().contentEquals("L")) main.right(Speed.FAST);
+            else if (command.toUpperCase().contentEquals("F")) main.sendFinish();
 
             else if (command.contentEquals("")) {
                 main.brake();
@@ -76,6 +79,16 @@ public class Main {
             }
         }
         main.stop();
+    }
+
+    private void sendFinish() {
+        try {
+            //notify the client
+            out.writeUTF("finish");
+            System.out.println("finish gesendet!");
+        } catch (Exception e) {
+            System.out.println("Konnte Nachricht nicht übermitteln!\n");
+        }
     }
 
     private void startServer(int port) {
@@ -176,7 +189,7 @@ public class Main {
                             + client.getRemoteSocketAddress());
 
                     DataInputStream in = new DataInputStream(client.getInputStream());
-                    DataOutputStream out = new DataOutputStream(client.getOutputStream());
+                    out = new DataOutputStream(client.getOutputStream());
 
                     //wait for commands from the client
                     String command = "";
