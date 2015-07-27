@@ -25,10 +25,9 @@ public class GameHandler implements OnCalibrationFininshedListener {
     private boolean isRunning = false;
     private volatile BufferedImage image;
     private volatile BufferedImage red, yellow, green;
-    private boolean hasShownCountdown;
     private JDialog countdownDialog, timerDialog;
     private JLabel imgLabel, timerLabel;
-    private int millis;
+    private volatile int millis;
     private int score;
     private String photoFnm;
     private Timer raceTimer;
@@ -73,7 +72,6 @@ public class GameHandler implements OnCalibrationFininshedListener {
 
                     case 1:
                         image = red;
-                        hasShownCountdown = true;
                         break;
                     case 2:
                         image = yellow;
@@ -105,7 +103,7 @@ public class GameHandler implements OnCalibrationFininshedListener {
                     imgLabel.setIcon(new ImageIcon(image));
                     imgLabel.revalidate();
                     countdownDialog.setVisible(true);
-                } else countdownDialog.setVisible(false);
+                } else countdownDialog.dispose();
 
                 //now repaint
                 main.repaint();
@@ -120,7 +118,8 @@ public class GameHandler implements OnCalibrationFininshedListener {
 
         //stop the countdown
         raceTimer.cancel();
-        timerDialog.setVisible(false);
+        raceTimer.purge();
+        timerDialog.dispose();
 
         //display the game-over panel
         main.getFrame().switchMode(Frame.Mode.GAMEOVER);
@@ -136,7 +135,6 @@ public class GameHandler implements OnCalibrationFininshedListener {
 
     public void reset() {
 
-        //TODO zeit läuft beim zweiten mal schneller
         millis = 0;
         score = 0;
         photoFnm = "";
@@ -151,6 +149,8 @@ public class GameHandler implements OnCalibrationFininshedListener {
         }
 
         private void showTimer() {
+
+            millis = 0;
 
             //display a dialog in the upper right corner that shows the elapsed time
             timerDialog = new JDialog(main.getFrame());
@@ -169,17 +169,21 @@ public class GameHandler implements OnCalibrationFininshedListener {
 
             //start the time measurements
             raceTimer = new Timer();
+            //save the current time for consistent time measuring
+            final long startTime = System.currentTimeMillis();
+
+            final SimpleDateFormat format = new SimpleDateFormat("mm:ss.SSS");
             raceTimer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
 
                     //update the elapsed time
-                    millis += 10;
+                    millis = (int) (System.currentTimeMillis() - startTime);
 
                     //after 10 seconds take the action photo
-                    if (millis == 10000) takePhoto();
+                    if (millis == 2000) takePhoto();
 
-                    SimpleDateFormat format = new SimpleDateFormat("mm:ss.SSS");
+
                     timerLabel.setText(format.format(millis));
                 }
             }, 10, 10);
