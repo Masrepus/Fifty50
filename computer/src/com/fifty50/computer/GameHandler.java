@@ -22,7 +22,7 @@ public class GameHandler implements OnCalibrationFininshedListener {
     public static final int MAX_TIME_MILLIS = 60000;
     public static final int POINTS_PER_SEC = 100;
     private final Main main;
-    private boolean isRunning = false;
+    private boolean isRunning, photoTaken;
     private volatile BufferedImage image;
     private volatile BufferedImage red, yellow, green;
     private JDialog countdownDialog, timerDialog;
@@ -181,7 +181,7 @@ public class GameHandler implements OnCalibrationFininshedListener {
                     millis = (int) (System.currentTimeMillis() - startTime);
 
                     //after 10 seconds take the action photo
-                    if (millis == 2000) takePhoto();
+                    if (!photoTaken && millis >= 2000) takePhoto();
 
 
                     timerLabel.setText(format.format(millis));
@@ -191,28 +191,47 @@ public class GameHandler implements OnCalibrationFininshedListener {
 
         private void takePhoto() {
 
-            //get the current image from handpanel and save it
-            BufferedImage actionImg = main.getHandpanel().getCurrImg();
+            //do this in a new thread because it could take quite some time for a valid image to arrive
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
 
-            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy-HH-mm-ss");
-            Date date = new Date();
-            photoFnm = format.format(date) + ".jpg";
+                    //get the current image from handpanel and save it
+                    BufferedImage actionImg = main.getHandpanel().getCurrImg();
 
-            if (actionImg != null) try {
+                    while (actionImg == null) {
 
-                //scale the img down to half the size in order to save space
-                BufferedImage actionImgScaled = new BufferedImage(actionImg.getWidth()/2, actionImg.getHeight()/2, actionImg.getType());
-                AffineTransform at = new AffineTransform();
-                at.scale(0.5, 0.5);
+                        //wait until we get a valid image!
+                        try {
+                            Thread.sleep(20);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
 
-                AffineTransformOp scaleOp =
-                        new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
-                actionImgScaled = scaleOp.filter(actionImg, actionImgScaled);
+                    SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy-HH-mm-ss");
+                    Date date = new Date();
+                    photoFnm = format.format(date) + ".jpg";
 
-                ImageIO.write(actionImgScaled, "JPEG", new File(main.getPath() + photoFnm));
-            } catch (IOException e) {
-                System.out.println("Konnte Actionfoto nicht speichern!");
-            }
+                    try {
+
+                        //scale the img down to half the size in order to save space
+                        BufferedImage actionImgScaled = new BufferedImage(actionImg.getWidth()/2, actionImg.getHeight()/2, actionImg.getType());
+                        AffineTransform at = new AffineTransform();
+                        at.scale(0.5, 0.5);
+
+                        AffineTransformOp scaleOp =
+                                new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+                        actionImgScaled = scaleOp.filter(actionImg, actionImgScaled);
+
+                        ImageIO.write(actionImgScaled, "JPEG", new File(main.getPath() + photoFnm));
+
+                        photoTaken = true;
+                    } catch (IOException e) {
+                        System.out.println("Konnte Actionfoto nicht speichern!");
+                    }
+                }
+            }).start();
         }
     }
 }

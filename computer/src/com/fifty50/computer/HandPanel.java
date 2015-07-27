@@ -110,7 +110,7 @@ public class HandPanel extends JPanel implements Runnable {
             long startTime = System.currentTimeMillis();
 
             snapIm = picGrab(grabber, CAMERA_ID);
-            if (snapIm != null) currImg = snapIm.getBufferedImage();
+            if (snapIm != null && snapIm.getBufferedImage() != null) currImg = snapIm.getBufferedImage();
             imageCount++;
             detector.update(snapIm);
             repaint();
@@ -207,7 +207,7 @@ public class HandPanel extends JPanel implements Runnable {
         int centerVertical = y_offset + (height / 2);
 
         //if only the cog should be drawn, skip this section
-        if (!drawCOGOnly) {
+        if (!drawCOGOnly && gestureDetector != null) {
             if (gestureDetector.getCurrDirection() == GestureDetector.Direction.RIGHT) { //image flipped!
                 g2d.setColor(Color.RED);
                 g2d.fillPolygon(new int[]{x_offset - 30, x_offset - 10, x_offset - 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
