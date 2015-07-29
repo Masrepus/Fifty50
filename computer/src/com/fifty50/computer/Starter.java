@@ -401,7 +401,7 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
                 g2d.drawImage(image, x + (320 - image.getWidth())/2, height - 300 + (240 - image.getHeight())/2, image.getWidth(), image.getHeight(), null);
 
                 //draw score and rank centered underneath/above the image
-                String score = scores.get(i) + "Punkte";
+                String score = scores.get(i) + "Punkte ";
                 g2d.drawString(score, x + 160 - stringLength(score, g2d)/2, height - 340);
 
                 String rank = "Platz " + String.valueOf(i + 1);
