@@ -184,6 +184,9 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         handPanel.setFocusable(true);
         handPanel.requestFocus();
 
+        //immediately start calibration
+        requestCalibration();
+
         repaint();
         frame.repaint();
     }

@@ -232,8 +232,6 @@ public class HandPanel extends JPanel implements Runnable {
 
                 //draw a horizontal line at the top of the brake area (center y level)
                 g2d.fillRect(x_offset, y_offset + gestureDetector.getCenter().y - 10, width, 10);
-            } else {
-                if (extraMsg.isEmpty()) extraMsg = "Drücke ENTER zum Kalibrieren";
             }
         }
 
