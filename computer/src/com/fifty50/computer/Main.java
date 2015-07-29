@@ -146,6 +146,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         handPanel = new HandPanel(hsvPath, 640, height / 2 - 5, width / 2 - 320, height / 2 + 5, debug, false, Color.WHITE);
         handPanel.setGameHandler(handler);
         handPanel.setBounds(0, height / 2 + 5, width, height / 2 - 5);
+        handPanel.setBackground(Color.BLACK);
         handPanel.addKeyListener(window);
         handPanel.setFrame(frame);
 
