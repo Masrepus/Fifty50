@@ -84,8 +84,8 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         handPanel.setStarter(this);
 
         String bgImg = "hintergrund";
-        if (tk.getScreenSize().width / tk.getScreenSize().height == 5 / 4) bgImg += "_54.png";
-        else bgImg += ".png";
+        if (tk.getScreenSize().width / tk.getScreenSize().height == 16 / 9) bgImg += "_16-9.png";
+        else bgImg += "_4-3.png";
         try {
             BackgroundPanel background = new BackgroundPanel(ImageIO.read(new File(path + bgImg)), width, height);
             background.setBounds(0, 0, width, height);
