@@ -121,7 +121,7 @@ public class HandPanel extends JPanel implements Runnable {
             totalTime += duration;
             if (duration < delay) {
                 try {
-                    Thread.sleep(/*delay - */duration);  // wait until DELAY time has passed
+                    Thread.sleep(duration);  // wait the amount of time it took to shoot the last picture
                 } catch (Exception ex) {
                 }
             }
@@ -230,8 +230,8 @@ public class HandPanel extends JPanel implements Runnable {
                 g2d.fillRect(x_offset + gestureDetector.getCenter().x - GestureDetector.CENTER_THRESHOLD, y_offset, 1, height);
                 g2d.fillRect(x_offset + gestureDetector.getCenter().x + GestureDetector.CENTER_THRESHOLD, y_offset, 1, height);
 
-                //draw a horizontal line at the top of the brake area
-                g2d.fillRect(x_offset, y_offset + height - gestureDetector.getBrakeZoneHeight() - 10, width, 10);
+                //draw a horizontal line at the top of the brake area (center y level)
+                g2d.fillRect(x_offset, y_offset + gestureDetector.getCenter().y - 10, width, 10);
             } else {
                 if (extraMsg.isEmpty()) extraMsg = "Drücke ENTER zum Kalibrieren";
             }
