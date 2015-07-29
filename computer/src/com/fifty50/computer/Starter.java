@@ -370,7 +370,7 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
 
                     //load the correct image or the null image
                     if (players.get(i).split(",")[1].contentEquals("null")) top10.add(ImageIO.read(new File(path + "null.png")));
-                    else top10.add(ImageIO.read(new File(path + players.get(i).split(",")[1])));
+                    else top10.add(ImageIO.read(new File(path + File.separator + "actionImgs" + File.separator + players.get(i).split(",")[1])));
 
                     scores.add(players.get(i).split(",")[0]);
                 }
