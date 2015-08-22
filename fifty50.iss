@@ -50,7 +50,8 @@ Name: "turkish"; MessagesFile: "compiler:Languages\Turkish.isl"
 Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 
 [Files]
-Source: "Z:\home\samuel\IdeaProjects\Fifty50 Racing\out\artifacts\computer_jar_windows_x86_64\computer.jar"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\IdeaProjects\Fifty50 Racing\out\artifacts\computer_jar_windows_x86_64\computer.jar"; DestDir: "{app}"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "Z:\home\samuel\IdeaProjects\Fifty50 Racing\out\artifacts\computer_jar_windows_x86\computer.jar"; DestDir: "{app}"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "Z:\home\samuel\fifty50\countdown1.png"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Z:\home\samuel\fifty50\countdown2.png"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Z:\home\samuel\fifty50\countdown3.png"; DestDir: "{app}"; Flags: ignoreversion
@@ -66,36 +67,14 @@ Source: "Z:\home\samuel\fifty50\start_fokussiert_2.png"; DestDir: "{app}"; Flags
 Source: "Z:\home\samuel\fifty50\start_fokussiert_3.png"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Z:\home\samuel\fifty50\start_fokussiert.png"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Z:\home\samuel\fifty50\start.png"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_calib3d245.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_contrib245.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_core245.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_core245d.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_createsamples.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_features2d245.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_ffmpeg245.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_flann245.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_flann245d.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_gpu245.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_haartraining.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_highgui245.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_imgproc245.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_imgproc245d.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_legacy245.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_ml245.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_nonfree245.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_objdetect245.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_performance.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_photo245.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_stitching245.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_superres245.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_traincascade.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_ts245.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_video245.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\home\samuel\fifty50\opencv_videostab245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\libs_32\*"; DestDir: "{app}"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\libs_64\*"; DestDir: "{app}"; Check: Is64BitInstallMode; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
+Name: "{group}\Fifty50 Racing"; Filename: "{app}\start.bat"; Comment: "Fifty50 Racing by S. Hopstock, A. Straﬂer, S. Lehmair"
+Name: "{commondesktop}\Fifty50 Racing"; Filename: "{app}\start.bat"; Comment: "Fifty50 Racing by S. Hopstock, A. Straﬂer, S. Lehmair"
 
 [Dirs]
 Name: "{app}\actionImgs"
@@ -131,3 +110,6 @@ begin
 DeleteFile(ExpandConstant('{app}\start.bat'));
 end
 end;
+
+[Run]
+Filename: "{app}\start.bat"; Description: "Fifty50 Racing jetzt starten!"; Flags: nowait postinstall skipifsilent
