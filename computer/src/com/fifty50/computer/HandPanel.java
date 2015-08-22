@@ -112,7 +112,7 @@ public class HandPanel extends JPanel implements Runnable {
             snapIm = picGrab(grabber, CAMERA_ID);
             if (snapIm != null && snapIm.getBufferedImage() != null) currImg = snapIm.getBufferedImage();
             imageCount++;
-            detector.update(snapIm);
+            if (snapIm != null) detector.update(snapIm);
             repaint();
 
             if (drawCOGOnly && starter != null) starter.repaint();
@@ -136,7 +136,7 @@ public class HandPanel extends JPanel implements Runnable {
         FrameGrabber grabber = null;
         System.out.println("Initializing grabber for " + CAMERA_ID + " ...");
         try {
-            grabber = FrameGrabber.createDefault(ID);
+            grabber = FrameGrabber.create("OpenCV", CAMERA_ID); //FrameGrabber.createDefault(ID);
             grabber.setFormat("mjpeg");       // using DirectShow
             grabber.setFrameRate(50);
             grabber.start();
