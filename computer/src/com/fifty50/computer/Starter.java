@@ -61,7 +61,7 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         width = tk.getScreenSize().width;
         height = tk.getScreenSize().height;
 
-        ImageIcon icon = new ImageIcon("/home/samuel/fifty50/start.png");
+        ImageIcon icon = new ImageIcon(path + "start.png");
         start = new JButton(icon);
         //put the start button in the center of the screen
         start.setBounds(width / 2 - icon.getIconWidth() / 2, height / 2 - icon.getIconHeight() / 2, icon.getIconWidth(), icon.getIconHeight());
@@ -110,6 +110,7 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         addKeyListener(this);
         setFocusable(true);
         requestFocus();
+        requestFocusInWindow();
     }
 
     @Override
