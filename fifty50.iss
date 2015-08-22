@@ -66,6 +66,32 @@ Source: "Z:\home\samuel\fifty50\start_fokussiert_2.png"; DestDir: "{app}"; Flags
 Source: "Z:\home\samuel\fifty50\start_fokussiert_3.png"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Z:\home\samuel\fifty50\start_fokussiert.png"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Z:\home\samuel\fifty50\start.png"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_calib3d245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_contrib245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_core245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_core245d.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_createsamples.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_features2d245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_ffmpeg245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_flann245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_flann245d.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_gpu245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_haartraining.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_highgui245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_imgproc245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_imgproc245d.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_legacy245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_ml245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_nonfree245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_objdetect245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_performance.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_photo245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_stitching245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_superres245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_traincascade.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_ts245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_video245.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\opencv_videostab245.dll"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
