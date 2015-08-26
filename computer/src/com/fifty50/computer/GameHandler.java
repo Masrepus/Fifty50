@@ -34,6 +34,7 @@ public class GameHandler implements OnCalibrationFininshedListener {
 
     public GameHandler(Main main, String path) {
         this.main = main;
+        path += File.separator;
 
         //pre-load the traffic light images
         try {
@@ -227,7 +228,7 @@ public class GameHandler implements OnCalibrationFininshedListener {
                                 new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
                         actionImgScaled = scaleOp.filter(actionImg, actionImgScaled);
 
-                        ImageIO.write(actionImgScaled, "JPEG", new File(main.getPath() + File.separator + "actionImgs" + File.separator + photoFnm));
+                        ImageIO.write(actionImgScaled, "JPEG", new File(main.getPath() + "actionImgs" + File.separator + photoFnm));
 
                         photoTaken = true;
                     } catch (IOException e) {
