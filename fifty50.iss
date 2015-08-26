@@ -17,7 +17,7 @@ AppPublisher={#MyAppPublisher}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
-OutputBaseFilename=setup
+OutputBaseFilename=setup_x64
 Compression=lzma
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64
@@ -87,8 +87,8 @@ fileName : string;
 path : string;
 begin
 fileName := ExpandConstant('{app}\start.bat');
-path := ExpandConstant('{app}\');
-SaveStringToFile(filename,'java -jar ' + path + 'computer.jar 192.168.42.1 8888 http://192.168.42.1:8080/?action=stream ' + path,false);
+path := ExpandConstant('{app}');
+SaveStringToFile(filename,'java -jar ' + '"' + path + 'computer.jar" 192.168.42.1 8888 http://192.168.42.1:8080/?action=stream ' + '"' + path + '"',false);
 exit;
 end;
 
@@ -109,8 +109,12 @@ if CurUninstallStep=usPostUninstall
 then
 begin
 DeleteFile(ExpandConstant('{app}\start.bat'));
+DeleteFile(ExpandConstant('{commondesktop}\Fifty50 Racing.lnk'));
 end
 end;
 
 [Run]
 Filename: "{app}\start.bat"; Description: "Fifty50 Racing jetzt starten!"; Flags: nowait postinstall skipifsilent
+
+[UninstallDelete]
+Type: filesandordirs; Name: "{group}";
