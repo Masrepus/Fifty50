@@ -36,12 +36,14 @@ public class Frame extends JFrame {
         getContentPane().setLayout(null);
         JLayeredPane background = new JLayeredPane();
         background.setLayout(null);
+        background.setBackground(Color.BLACK);
         background.setBounds(0, 0, width, height);
         getContentPane().add(background);
 
         //init the main screen but leave it invisible
         main = new Main(args);
         main.setBounds(0, 0, width, height);
+        main.setBackground(Color.BLACK);
         main.setVisible(false);
         main.setFrame(this);
         main.init();

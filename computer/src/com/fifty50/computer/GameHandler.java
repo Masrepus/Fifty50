@@ -34,6 +34,7 @@ public class GameHandler implements OnCalibrationFininshedListener {
 
     public GameHandler(Main main, String path) {
         this.main = main;
+        path += File.separator;
 
         //pre-load the traffic light images
         try {
@@ -76,10 +77,10 @@ public class GameHandler implements OnCalibrationFininshedListener {
                     case 2:
                         image = yellow;
                         break;
-                    case 6:
+                    case 3:
                         image = green;
                         break;
-                    case 7:
+                    case 4:
                         image = null;
                         timer.cancel();
                         //start the game!
@@ -155,11 +156,14 @@ public class GameHandler implements OnCalibrationFininshedListener {
             //display a dialog in the upper right corner that shows the elapsed time
             timerDialog = new JDialog(main.getFrame());
             timerDialog.setUndecorated(true);
+            timerDialog.setBackground(Color.BLACK);
 
             //set up the label that will display the time
             timerLabel = new JLabel("00:00.0000", JLabel.CENTER);
             timerLabel.setFont(new Font(null, Font.BOLD, 30));
             timerLabel.setForeground(Color.WHITE);
+            timerLabel.setBackground(Color.BLACK);
+            timerLabel.setOpaque(true);
             timerDialog.add(timerLabel);
 
             //calculate where the dialog should be located and how big it should be
@@ -181,7 +185,7 @@ public class GameHandler implements OnCalibrationFininshedListener {
                     millis = (int) (System.currentTimeMillis() - startTime);
 
                     //after 10 seconds take the action photo
-                    if (!photoTaken && millis >= 2000) takePhoto();
+                    if (!photoTaken && millis >= 10000) takePhoto();
 
 
                     timerLabel.setText(format.format(millis));
@@ -224,7 +228,7 @@ public class GameHandler implements OnCalibrationFininshedListener {
                                 new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
                         actionImgScaled = scaleOp.filter(actionImg, actionImgScaled);
 
-                        ImageIO.write(actionImgScaled, "JPEG", new File(main.getPath() + photoFnm));
+                        ImageIO.write(actionImgScaled, "JPEG", new File(main.getPath() + "actionImgs" + File.separator + photoFnm));
 
                         photoTaken = true;
                     } catch (IOException e) {

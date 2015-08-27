@@ -116,7 +116,7 @@ public class HSVPanel extends JPanel implements Runnable {
         FrameGrabber grabber = null;
         System.out.println("Initializing grabber for " + ID + " ...");
         try {
-            grabber = FrameGrabber.createDefault(ID);
+            grabber = FrameGrabber.create("OpenCV", ID);
             grabber.setFormat("dshow");       // using DirectShow
             grabber.setImageWidth(WIDTH);     // default is too small: 320x240
             grabber.setImageHeight(HEIGHT);

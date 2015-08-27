@@ -47,8 +47,8 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
         hasRun = true;
 
-        path = args[3];
-        String hsvPath = args[3] + "hand.txt";
+        path = args[3] + File.separator;
+        String hsvPath = path + "hand.txt";
         boolean debug = false;
         if (args.length == 5) debug = Boolean.parseBoolean(args[4]);
 
@@ -146,7 +146,8 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         handPanel = new HandPanel(hsvPath, 640, height / 2 - 5, width / 2 - 320, height / 2 + 5, debug, false, Color.WHITE);
         handPanel.setGameHandler(handler);
         handPanel.setBounds(0, height / 2 + 5, width, height / 2 - 5);
-        handPanel.addKeyListener(window);
+        handPanel.setBackground(Color.BLACK);
+        addKeyListener(window);
         handPanel.setFrame(frame);
 
         add(handPanel, 1);
@@ -181,8 +182,12 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         setVisible(true);
         detector.start();
         viewer.init();
-        handPanel.setFocusable(true);
-        handPanel.requestFocus();
+        setFocusable(true);
+        requestFocus();
+        requestFocusInWindow();
+
+        //immediately start calibration
+        requestCalibration();
 
         repaint();
         frame.repaint();
