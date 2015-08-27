@@ -107,6 +107,13 @@ public class Frame extends JFrame {
         new Frame(args);
     }
 
+    @Override
+    public void paint(Graphics g) {
+        super.paint(g);
+
+        //paint game handler images on top if required
+    }
+
     public boolean hasGameRun() {
         return gameHasRun;
     }
