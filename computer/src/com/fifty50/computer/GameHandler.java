@@ -2,6 +2,7 @@ package com.fifty50.computer;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicInternalFrameUI;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
@@ -25,12 +26,14 @@ public class GameHandler implements OnCalibrationFininshedListener {
     private boolean isRunning, photoTaken;
     private volatile BufferedImage image;
     private volatile BufferedImage red, yellow, green;
-    private JDialog countdownDialog, timerDialog;
+    private JInternalFrame countdownDialog, timerDialog;
     private JLabel imgLabel, timerLabel;
     private volatile int millis;
     private int score;
     private String photoFnm;
     private Timer raceTimer;
+    private int width, height;
+    private JOptionPane pane;
 
     public GameHandler(Main main, String path) {
         this.main = main;
@@ -46,6 +49,14 @@ public class GameHandler implements OnCalibrationFininshedListener {
             e.printStackTrace();
             System.exit(404);
         }
+
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        width = tk.getScreenSize().width;
+        height = tk.getScreenSize().height;
+
+        //init internal dialog
+        pane = new JOptionPane("", JOptionPane.PLAIN_MESSAGE,
+                JOptionPane.DEFAULT_OPTION, null, null, null);
     }
 
     public boolean isRunning() {
@@ -91,17 +102,18 @@ public class GameHandler implements OnCalibrationFininshedListener {
 
                 if (image != null) {
 
-                    //display the countdown images in a dialog
+                    //display the countdown images in an internal dialog
                     if (countdownDialog == null) {
-                        countdownDialog = new JDialog(main.getFrame());
+                        countdownDialog = pane.createInternalFrame(main, "");
+                        ((BasicInternalFrameUI) countdownDialog.getUI()).setNorthPane(null);
                         imgLabel = new JLabel();
                         countdownDialog.setSize(image.getWidth(), image.getHeight());
-                        countdownDialog.setLocationRelativeTo(null);
-                        countdownDialog.setUndecorated(true);
-                        countdownDialog.add(imgLabel);
+                        countdownDialog.setLocation((width - image.getWidth()) / 2, (height - image.getHeight()) / 2);
+                        countdownDialog.setContentPane(imgLabel);
                     }
 
                     imgLabel.setIcon(new ImageIcon(image));
+                    imgLabel.setVisible(true);
                     imgLabel.revalidate();
                     countdownDialog.setVisible(true);
                 } else countdownDialog.dispose();
@@ -154,8 +166,8 @@ public class GameHandler implements OnCalibrationFininshedListener {
             millis = 0;
 
             //display a dialog in the upper right corner that shows the elapsed time
-            timerDialog = new JDialog(main.getFrame());
-            timerDialog.setUndecorated(true);
+            timerDialog = pane.createInternalFrame(main, "");
+            ((BasicInternalFrameUI) timerDialog.getUI()).setNorthPane(null);
             timerDialog.setBackground(Color.BLACK);
 
             //set up the label that will display the time
