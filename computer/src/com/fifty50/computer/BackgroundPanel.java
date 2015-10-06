@@ -6,7 +6,7 @@ import java.awt.*;
 /**
  * Created by samuel on 06.07.15.
  */
-class BackgroundPanel extends JPanel {
+public class BackgroundPanel extends JPanel {
 
     Image background;
     private int width, height;
