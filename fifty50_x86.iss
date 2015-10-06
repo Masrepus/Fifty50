@@ -75,7 +75,8 @@ Name: "{group}\Fifty50 Racing"; Filename: "{app}\start.bat"; Comment: "Fifty50 R
 Name: "{commondesktop}\Fifty50 Racing"; Filename: "{app}\start.bat"; Comment: "Fifty50 Racing by S. Hopstock, A. Straﬂer, S. Lehmair"
 
 [Dirs]
-Name: "{app}\actionImgs"
+Name: "{app}\actionImgs"; Permissions: everyone-full
+Name: "{app}"; Permissions: everyone-full
 
 [Code]
 function CreateBatch(): boolean;
