@@ -47,8 +47,8 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
         hasRun = true;
 
-        path = args[3];
-        String hsvPath = args[3] + "hand.txt";
+        path = args[3] + File.separator;
+        String hsvPath = path + "hand.txt";
         boolean debug = false;
         if (args.length == 5) debug = Boolean.parseBoolean(args[4]);
 
