@@ -61,7 +61,7 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         width = tk.getScreenSize().width;
         height = tk.getScreenSize().height;
 
-        ImageIcon icon = new ImageIcon("/home/samuel/fifty50/start.png");
+        ImageIcon icon = new ImageIcon(path + "start.png");
         start = new JButton(icon);
         //put the start button in the center of the screen
         start.setBounds(width / 2 - icon.getIconWidth() / 2, height / 2 - icon.getIconHeight() / 2, icon.getIconWidth(), icon.getIconHeight());
@@ -84,8 +84,8 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         handPanel.setStarter(this);
 
         String bgImg = "hintergrund";
-        if (tk.getScreenSize().width / tk.getScreenSize().height == 5 / 4) bgImg += "_54.png";
-        else bgImg += ".png";
+        if (tk.getScreenSize().width / tk.getScreenSize().height == 16 / 9) bgImg += "_16-9.png";
+        else bgImg += "_4-3.png";
         try {
             BackgroundPanel background = new BackgroundPanel(ImageIO.read(new File(path + bgImg)), width, height);
             background.setBounds(0, 0, width, height);
@@ -110,6 +110,7 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         addKeyListener(this);
         setFocusable(true);
         requestFocus();
+        requestFocusInWindow();
     }
 
     @Override
@@ -370,7 +371,7 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
 
                     //load the correct image or the null image
                     if (players.get(i).split(",")[1].contentEquals("null")) top10.add(ImageIO.read(new File(path + "null.png")));
-                    else top10.add(ImageIO.read(new File(path + players.get(i).split(",")[1])));
+                    else top10.add(ImageIO.read(new File(path + File.separator + "actionImgs" + File.separator + players.get(i).split(",")[1])));
 
                     scores.add(players.get(i).split(",")[0]);
                 }
@@ -401,7 +402,7 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
                 g2d.drawImage(image, x + (320 - image.getWidth())/2, height - 300 + (240 - image.getHeight())/2, image.getWidth(), image.getHeight(), null);
 
                 //draw score and rank centered underneath/above the image
-                String score = scores.get(i) + "Punkte";
+                String score = scores.get(i) + " Punkte";
                 g2d.drawString(score, x + 160 - stringLength(score, g2d)/2, height - 340);
 
                 String rank = "Platz " + String.valueOf(i + 1);

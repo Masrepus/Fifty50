@@ -112,7 +112,7 @@ public class HandPanel extends JPanel implements Runnable {
             snapIm = picGrab(grabber, CAMERA_ID);
             if (snapIm != null && snapIm.getBufferedImage() != null) currImg = snapIm.getBufferedImage();
             imageCount++;
-            detector.update(snapIm);
+            if (snapIm != null) detector.update(snapIm);
             repaint();
 
             if (drawCOGOnly && starter != null) starter.repaint();
@@ -121,7 +121,7 @@ public class HandPanel extends JPanel implements Runnable {
             totalTime += duration;
             if (duration < delay) {
                 try {
-                    Thread.sleep(/*delay - */duration);  // wait until DELAY time has passed
+                    Thread.sleep(duration);  // wait the amount of time it took to shoot the last picture
                 } catch (Exception ex) {
                 }
             }
@@ -136,7 +136,7 @@ public class HandPanel extends JPanel implements Runnable {
         FrameGrabber grabber = null;
         System.out.println("Initializing grabber for " + CAMERA_ID + " ...");
         try {
-            grabber = FrameGrabber.createDefault(ID);
+            grabber = FrameGrabber.create("OpenCV", CAMERA_ID); //FrameGrabber.createDefault(ID);
             grabber.setFormat("mjpeg");       // using DirectShow
             grabber.setFrameRate(50);
             grabber.start();
@@ -230,10 +230,8 @@ public class HandPanel extends JPanel implements Runnable {
                 g2d.fillRect(x_offset + gestureDetector.getCenter().x - GestureDetector.CENTER_THRESHOLD, y_offset, 1, height);
                 g2d.fillRect(x_offset + gestureDetector.getCenter().x + GestureDetector.CENTER_THRESHOLD, y_offset, 1, height);
 
-                //draw a horizontal line at the top of the brake area
-                g2d.fillRect(x_offset, y_offset + height - gestureDetector.getBrakeZoneHeight() - 10, width, 10);
-            } else {
-                if (extraMsg.isEmpty()) extraMsg = "Drücke ENTER zum Kalibrieren";
+                //draw a horizontal line at the top of the brake area (center y level)
+                g2d.fillRect(x_offset, y_offset + gestureDetector.getCenter().y - 10, width, 10);
             }
         }
 

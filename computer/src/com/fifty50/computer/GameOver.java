@@ -41,8 +41,8 @@ public class GameOver extends JLayeredPane implements Runnable {
 
         //set bg image
         String bgImg = "gameover";
-        if (tk.getScreenSize().width / tk.getScreenSize().height == 5 / 4) bgImg += ".png";
-        else bgImg += ".png";
+        if (tk.getScreenSize().width / tk.getScreenSize().height == 16 / 9) bgImg += "_16-9.png";
+        else bgImg += "_4-3.png";
         try {
             BackgroundPanel background = new BackgroundPanel(ImageIO.read(new File(path + bgImg)), width, height);
             background.setBounds(0, 0, width, height);
@@ -162,7 +162,7 @@ public class GameOver extends JLayeredPane implements Runnable {
 
         //display the action photo in the center at 440x440 px (if screen = 1920x1080, else scale accordingly)
         try {
-            BufferedImage actionImg = ImageIO.read(new File(path + photoFnm));
+            BufferedImage actionImg = ImageIO.read(new File(path + File.separator + "actionImgs" + File.separator + photoFnm));
             int width = actionImg.getWidth();
             int height = actionImg.getHeight();
 
