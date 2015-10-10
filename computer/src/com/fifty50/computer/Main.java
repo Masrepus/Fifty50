@@ -1,12 +1,15 @@
 package com.fifty50.computer;
 
 import com.charliemouse.cambozola.Viewer;
-import com.googlecode.javacv.FrameGrabber;
 
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicInternalFrameUI;
 import java.applet.AppletContext;
 import java.applet.AppletStub;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.Socket;
@@ -31,16 +34,14 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
     private boolean hasRun = false;
     private int width, height;
     private String path;
-    private enum State {LOW, HIGH;
-        public static State parse(String s) {
-            return (s.toUpperCase().contentEquals("LOW")) ? LOW : HIGH;
-        }
-    }
-    private volatile State fwdFast, fwdSlow, bwdFast, bwdSlow, leftFast, leftSlow, rightFast, rightSlow;
+    private JInternalFrame popup;
+    private Connector connector;
+
+    private volatile Car.PinState fwdFast, fwdSlow, bwdFast, bwdSlow, leftFast, leftSlow, rightFast, rightSlow;
 
     public Main(String[] args) {
         this.args = args;
-        fwdFast = fwdSlow = bwdFast = bwdSlow = leftFast = leftSlow = rightFast = rightSlow = State.LOW;
+        fwdFast = fwdSlow = bwdFast = bwdSlow = leftFast = leftSlow = rightFast = rightSlow = Car.PinState.LOW;
     }
 
     public void init() {
@@ -147,7 +148,6 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         handPanel.setGameHandler(handler);
         handPanel.setBounds(0, height / 2 + 5, width, height / 2 - 5);
         handPanel.setBackground(Color.BLACK);
-        addKeyListener(window);
         handPanel.setFrame(frame);
 
         add(handPanel, 1);
@@ -177,14 +177,12 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
     public void start() {
 
         //init the GestureDetector and start everything
+        popup.dispose();
         detector = new GestureDetector(this, handPanel, handler);
         handPanel.setVisible(true);
         setVisible(true);
         detector.start();
         viewer.init();
-        setFocusable(true);
-        requestFocus();
-        requestFocusInWindow();
 
         //immediately start calibration
         requestCalibration();
@@ -196,6 +194,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
     public void restart() {
 
         //restart the hand panel and the other components
+        popup.dispose();
         handPanel.setIsCalibrated(false);
         new Thread(handPanel).start();
         handPanel.setVisible(true);
@@ -204,8 +203,6 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
         new Thread(detector).start();
         viewer.init();
-        handPanel.setFocusable(true);
-        handPanel.requestFocus();
 
         handler.reset();
 
@@ -214,16 +211,17 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
     }
 
     public void connectToServer(String serverName, int port) {
-        new Connector(serverName, port).start();
+        connector = new Connector(serverName, port);
+        connector.start();
         //start listening for server messages
         new ServerListener().start();
     }
 
     public void straight() {
-        if (leftFast == State.LOW && rightFast == State.LOW && leftSlow == State.LOW && rightSlow == State.LOW) return;
+        if (leftFast == Car.PinState.LOW && rightFast == Car.PinState.LOW && leftSlow == Car.PinState.LOW && rightSlow == Car.PinState.LOW) return;
         try {
             out.writeUTF("straight");
-            leftFast = rightFast = leftSlow = rightSlow = State.LOW;
+            leftFast = rightFast = leftSlow = rightSlow = Car.PinState.LOW;
             System.out.println("gerade");
         } catch (IOException e) {
             System.out.println("Fehler beim Senden des Befehls");
@@ -231,17 +229,17 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
     }
 
     public void brake() {
-        if (fwdFast == State.LOW && fwdSlow == State.LOW && bwdSlow == State.LOW && bwdFast == State.LOW) return;
+        if (fwdFast == Car.PinState.LOW && fwdSlow == Car.PinState.LOW && bwdSlow == Car.PinState.LOW && bwdFast == Car.PinState.LOW) return;
         try {
             out.writeUTF("");
-            fwdSlow = fwdFast = bwdSlow = bwdFast = State.LOW;
+            fwdSlow = fwdFast = bwdSlow = bwdFast = Car.PinState.LOW;
             System.out.println("bremsen");
         } catch (IOException e) {
             System.out.println("Fehler beim Senden des Befehls");
         }
     }
 
-    public void right(Speed speed) {
+    public void right(Car.Speed speed) {
 
         String command;
 
@@ -250,15 +248,15 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
             case FAST:
             default:
-                if (rightFast == State.HIGH) return;
-                rightFast = State.HIGH;
-                rightSlow = leftFast = leftSlow = State.LOW;
+                if (rightFast == Car.PinState.HIGH) return;
+                rightFast = Car.PinState.HIGH;
+                rightSlow = leftFast = leftSlow = Car.PinState.LOW;
                 command = "L";
                 break;
             case SLOW:
-                if (rightSlow == State.HIGH) return;
-                rightSlow = State.HIGH;
-                rightFast = leftFast = leftSlow = State.LOW;
+                if (rightSlow == Car.PinState.HIGH) return;
+                rightSlow = Car.PinState.HIGH;
+                rightFast = leftFast = leftSlow = Car.PinState.LOW;
                 command = "D";
                 break;
         }
@@ -272,7 +270,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         }
     }
 
-    public void left(Speed speed) {
+    public void left(Car.Speed speed) {
 
         String command;
 
@@ -281,15 +279,15 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
             case FAST:
             default:
-                if (leftFast == State.HIGH) return;
-                leftFast = State.HIGH;
-                leftSlow = rightFast = rightSlow = State.LOW;
+                if (leftFast == Car.PinState.HIGH) return;
+                leftFast = Car.PinState.HIGH;
+                leftSlow = rightFast = rightSlow = Car.PinState.LOW;
                 command = "J";
                 break;
             case SLOW:
-                if (leftSlow == State.HIGH) return;
-                leftSlow = State.HIGH;
-                leftFast = rightFast = rightSlow = State.LOW;
+                if (leftSlow == Car.PinState.HIGH) return;
+                leftSlow = Car.PinState.HIGH;
+                leftFast = rightFast = rightSlow = Car.PinState.LOW;
                 command = "A";
                 break;
         }
@@ -303,7 +301,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         }
     }
 
-    public void backward(Speed speed) {
+    public void backward(Car.Speed speed) {
 
         String command;
 
@@ -312,15 +310,15 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
             case FAST:
             default:
-                if (bwdFast == State.HIGH) return;
-                bwdFast = State.HIGH;
-                bwdSlow = fwdSlow = fwdFast = State.LOW;
+                if (bwdFast == Car.PinState.HIGH) return;
+                bwdFast = Car.PinState.HIGH;
+                bwdSlow = fwdSlow = fwdFast = Car.PinState.LOW;
                 command = "K";
                 break;
             case SLOW:
-                if (bwdSlow == State.HIGH) return;
-                bwdSlow = State.HIGH;
-                bwdFast = fwdSlow = fwdFast = State.LOW;
+                if (bwdSlow == Car.PinState.HIGH) return;
+                bwdSlow = Car.PinState.HIGH;
+                bwdFast = fwdSlow = fwdFast = Car.PinState.LOW;
                 command = "S";
                 break;
         }
@@ -334,7 +332,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         }
     }
 
-    public void forward(Speed speed) {
+    public void forward(Car.Speed speed) {
 
         String command;
 
@@ -343,15 +341,15 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
             case FAST:
             default:
-                if (fwdFast == State.HIGH) return;
-                fwdFast = State.HIGH;
-                fwdSlow = bwdFast = bwdSlow = State.LOW;
+                if (fwdFast == Car.PinState.HIGH) return;
+                fwdFast = Car.PinState.HIGH;
+                fwdSlow = bwdFast = bwdSlow = Car.PinState.LOW;
                 command = "I";
                 break;
             case SLOW:
-                if (fwdSlow == State.HIGH) return;
-                fwdSlow = State.HIGH;
-                fwdFast = bwdSlow = bwdFast = State.LOW;
+                if (fwdSlow == Car.PinState.HIGH) return;
+                fwdSlow = Car.PinState.HIGH;
+                fwdFast = bwdSlow = bwdFast = Car.PinState.LOW;
                 command = "W";
                 break;
         }
@@ -427,15 +425,15 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
             }
 
             //check if this is a legitimate command
-            if (command.toUpperCase().contentEquals("W")) forward(Speed.SLOW);
-            else if (command.toUpperCase().contentEquals("S")) backward(Speed.SLOW);
-            else if (command.toUpperCase().contentEquals("A")) left(Speed.SLOW);
-            else if (command.toUpperCase().contentEquals("D")) right(Speed.SLOW);
+            if (command.toUpperCase().contentEquals("W")) forward(Car.Speed.SLOW);
+            else if (command.toUpperCase().contentEquals("S")) backward(Car.Speed.SLOW);
+            else if (command.toUpperCase().contentEquals("A")) left(Car.Speed.SLOW);
+            else if (command.toUpperCase().contentEquals("D")) right(Car.Speed.SLOW);
 
-            else if (command.toUpperCase().contentEquals("I")) forward(Speed.FAST);
-            else if (command.toUpperCase().contentEquals("K")) backward(Speed.FAST);
-            else if (command.toUpperCase().contentEquals("J")) left(Speed.FAST);
-            else if (command.toUpperCase().contentEquals("L")) right(Speed.FAST);
+            else if (command.toUpperCase().contentEquals("I")) forward(Car.Speed.FAST);
+            else if (command.toUpperCase().contentEquals("K")) backward(Car.Speed.FAST);
+            else if (command.toUpperCase().contentEquals("J")) left(Car.Speed.FAST);
+            else if (command.toUpperCase().contentEquals("L")) right(Car.Speed.FAST);
 
             else if (command.contentEquals("")) {
                 brake();
@@ -465,12 +463,13 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         return path;
     }
 
-    public enum Speed {SLOW, FAST}
-
     private class Connector extends Thread {
 
-        String serverName;
-        int port;
+        private String serverName;
+        private int port;
+        private boolean connected;
+        private Socket client;
+        private JOptionPane pane;
 
         public Connector(String serverName, int port) {
             this.serverName = serverName;
@@ -481,12 +480,12 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         public void run() {
 
             //try to establish a two-way connection to the car; sleep and retry if connection fails
-            boolean connected = false;
+            connected = false;
 
             while (!connected) {
                 try {
                     System.out.println("Verbinde mit " + serverName + " am Port " + port + "...");
-                    Socket client = new Socket(serverName, port);
+                    client = new Socket(serverName, port);
                     System.out.println("Verbunden mit " + client.getRemoteSocketAddress());
 
                     OutputStream outToServer = client.getOutputStream();
@@ -496,8 +495,8 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
                     in = new DataInputStream(inFromServer);
                     connected = true;
 
-                    //message!
-                    JOptionPane.showMessageDialog(Main.this, "Verbunden mit " + client.getRemoteSocketAddress());
+                    //show a "connected" internal frame popup
+                    showPopup();
                 } catch (IOException e) {
                     System.out.println("Verbindung fehlgeschlagen, warte...");
                     try {
@@ -507,6 +506,52 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
                     connected = false;
                 }
             }
+        }
+
+        public boolean isConnected() {
+            return connected;
+        }
+
+        public void showPopup() {
+
+            //wait until frame is shown
+            while (!frame.isVisible()) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ignored) {}
+            }
+
+            if (pane == null) pane = new JOptionPane("", JOptionPane.PLAIN_MESSAGE,
+                    JOptionPane.DEFAULT_OPTION, null, null, null);
+
+            //if there is already an old popup, dispose it
+            if (popup != null) popup.dispose();
+
+            popup = pane.createInternalFrame(Main.this, "");
+            ((BasicInternalFrameUI) popup.getUI()).setNorthPane(null);
+            popup.setBackground(Color.BLACK);
+
+            String message = "Verbunden mit Auto: " + client.getRemoteSocketAddress();
+
+            //set up the label that will display the message
+            JLabel label = new JLabel(message, JLabel.CENTER);
+            //label.setFont(new Font(null, Font.BOLD, 30));
+            label.setForeground(Color.WHITE);
+            label.setBackground(Color.BLACK);
+            label.setOpaque(true);
+
+            Rectangle2D stringBounds = label.getFontMetrics(label.getFont()).getStringBounds(message, null);
+            int stringLen = (int) stringBounds.getWidth();
+            int stringHeight = (int) stringBounds.getHeight();
+
+            popup.getRootPane().removeAll();
+            popup.getRootPane().add(label);
+            //center the label
+            label.setBounds(17, (50-stringHeight)/2, stringLen, stringHeight);
+
+            popup.setBounds(width/2 - stringLen/2 - 20, height - 60, stringLen + 40, 50);
+            label.setVisible(true);
+            popup.setVisible(true);
         }
     }
 
@@ -528,14 +573,14 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
                     }
 
                     //listen for pin state changes
-                    else if (message.contains("fwd fast")) fwdFast = Main.State.parse(message.split("\\s+")[2]);
-                    else if (message.contains("fwd slow")) fwdSlow = Main.State.parse(message.split("\\s+")[2]);
-                    else if (message.contains("bwd fast")) bwdFast = Main.State.parse(message.split("\\s+")[2]);
-                    else if (message.contains("bwd slow")) bwdSlow = Main.State.parse(message.split("\\s+")[2]);
-                    else if (message.contains("left fast")) leftFast = Main.State.parse(message.split("\\s+")[2]);
-                    else if (message.contains("left slow")) leftSlow = Main.State.parse(message.split("\\s+")[2]);
-                    else if (message.contains("right fast")) rightFast = Main.State.parse(message.split("\\s+")[2]);
-                    else if (message.contains("right slow")) rightSlow = Main.State.parse(message.split("\\s+")[2]);
+                    else if (message.contains("fwd fast")) fwdFast = Car.PinState.parse(message.split("\\s+")[2]);
+                    else if (message.contains("fwd slow")) fwdSlow = Car.PinState.parse(message.split("\\s+")[2]);
+                    else if (message.contains("bwd fast")) bwdFast = Car.PinState.parse(message.split("\\s+")[2]);
+                    else if (message.contains("bwd slow")) bwdSlow = Car.PinState.parse(message.split("\\s+")[2]);
+                    else if (message.contains("left fast")) leftFast = Car.PinState.parse(message.split("\\s+")[2]);
+                    else if (message.contains("left slow")) leftSlow = Car.PinState.parse(message.split("\\s+")[2]);
+                    else if (message.contains("right fast")) rightFast = Car.PinState.parse(message.split("\\s+")[2]);
+                    else if (message.contains("right slow")) rightSlow = Car.PinState.parse(message.split("\\s+")[2]);
 
                 } catch (Exception ignored) {}
             }
