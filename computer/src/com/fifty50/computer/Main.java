@@ -36,6 +36,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
     private String path;
     private JInternalFrame popup;
     private Connector connector;
+    private FinishDetector finishDetector;
 
     private volatile Car.PinState fwdFast, fwdSlow, bwdFast, bwdSlow, leftFast, leftSlow, rightFast, rightSlow;
 
@@ -152,6 +153,8 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
         add(handPanel, 1);
         revalidate();
+
+        finishDetector = new FinishDetector(this, viewer, 640, 480, path + "finish.txt");
     }
 
     public void pause() {
@@ -171,6 +174,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
             e.printStackTrace();
         }
         viewer.stop();
+        finishDetector.stop();
         setVisible(false);
     }
 
@@ -183,6 +187,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         setVisible(true);
         detector.start();
         viewer.init();
+        finishDetector.start();
 
         //immediately start calibration
         requestCalibration();
@@ -198,6 +203,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         handPanel.setIsCalibrated(false);
         new Thread(handPanel).start();
         handPanel.setVisible(true);
+        finishDetector.start();
 
         setVisible(true);
 

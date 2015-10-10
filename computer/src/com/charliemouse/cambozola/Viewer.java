@@ -935,4 +935,8 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
     public Dimension getMinimumSize() {
         return new Dimension(m_imgWidth, m_imgHeight);
     }
+
+    public Image getImage() {
+        return m_imgStream.getCurrent();
+    }
 }
