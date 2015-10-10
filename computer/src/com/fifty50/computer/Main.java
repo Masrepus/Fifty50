@@ -535,7 +535,6 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
             //set up the label that will display the message
             JLabel label = new JLabel(message, JLabel.CENTER);
-            //label.setFont(new Font(null, Font.BOLD, 30));
             label.setForeground(Color.WHITE);
             label.setBackground(Color.BLACK);
             label.setOpaque(true);
@@ -549,7 +548,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
             //center the label
             label.setBounds(17, (50-stringHeight)/2, stringLen, stringHeight);
 
-            popup.setBounds(width/2 - stringLen/2 - 20, height - 60, stringLen + 40, 50);
+            popup.setBounds(width/2 - stringLen/2 - 20, 5, stringLen + 40, 50);
             label.setVisible(true);
             popup.setVisible(true);
         }
