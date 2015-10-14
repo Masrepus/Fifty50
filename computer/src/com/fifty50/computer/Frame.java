@@ -2,14 +2,25 @@ package com.fifty50.computer;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
-import java.util.Timer;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
 /**
  * Created by samuel on 02.05.15.
  */
 public class Frame extends JFrame {
 
+    public static final String FWD_FAST = "fwdFast";
+    public static final String FWD_SLOW = "fwdSlow";
+    public static final String BWD_FAST = "bwdFast";
+    public static final String BWD_SLOW = "bwdSlow";
+    public static final String LEFT_FAST = "leftFast";
+    public static final String LEFT_SLOW = "leftSlow";
+    public static final String RIGHT_FAST = "rightFast";
+    public static final String RIGHT_SLOW = "rightSlow";
+    public static final String BRAKE = "brake";
+    public static final String STRAIGHT = "straight";
+    public static final String FINISH = "finish";
     private int width, height;
     private String[] args;
     private Starter starter;
@@ -67,11 +78,57 @@ public class Frame extends JFrame {
         pack();
         background.repaint();
 
+        //set key bindings
+        addKeyBindings();
+
         //go fullscreen
         GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0];
         device.setFullScreenWindow(this);
 
         setVisible(true);
+    }
+
+    private void addKeyBindings() {
+
+        //key controls have to work all the time, no matter which component is in focus
+        InputMap input = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap action = getRootPane().getActionMap();
+        //forward
+        input.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), FWD_FAST);
+        input.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0, true), BRAKE); //true -> fires on key release
+        action.put(FWD_FAST, new ForwardAction(Car.Speed.FAST));
+        input.put(KeyStroke.getKeyStroke('w'), FWD_SLOW);
+        input.put(KeyStroke.getKeyStroke("released w"), BRAKE);
+        action.put(FWD_SLOW, new ForwardAction(Car.Speed.SLOW));
+        //backward
+        input.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), BWD_FAST);
+        input.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0, true), BRAKE);
+        action.put(BWD_FAST, new BackwardAction(Car.Speed.FAST));
+        input.put(KeyStroke.getKeyStroke('s'), BWD_SLOW);
+        input.put(KeyStroke.getKeyStroke("released s"), BRAKE);
+        action.put(BWD_SLOW, new BackwardAction(Car.Speed.SLOW));
+        //left
+        input.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), LEFT_FAST);
+        input.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0, true), STRAIGHT);
+        action.put(LEFT_FAST, new LeftAction(Car.Speed.FAST));
+        input.put(KeyStroke.getKeyStroke('a'), LEFT_SLOW);
+        input.put(KeyStroke.getKeyStroke("released a"), STRAIGHT);
+        action.put(LEFT_SLOW, new LeftAction(Car.Speed.SLOW));
+        //right
+        input.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), RIGHT_FAST);
+        input.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0, true), STRAIGHT);
+        action.put(RIGHT_FAST, new RightAction(Car.Speed.FAST));
+        input.put(KeyStroke.getKeyStroke('d'), RIGHT_SLOW);
+        input.put(KeyStroke.getKeyStroke("released d"), STRAIGHT);
+        action.put(RIGHT_SLOW, new RightAction(Car.Speed.SLOW));
+
+        //brake and straight
+        action.put(BRAKE, new BrakeAction());
+        action.put(STRAIGHT, new StraightAction());
+
+        //finish game
+        input.put(KeyStroke.getKeyStroke('f'), FINISH);
+        action.put(FINISH, new FinishAction());
     }
 
     public void switchMode(Mode mode) {
@@ -116,5 +173,86 @@ public class Frame extends JFrame {
 
     public boolean hasGameRun() {
         return gameHasRun;
+    }
+
+    private class ForwardAction extends AbstractAction {
+
+        private Car.Speed speed;
+
+        public ForwardAction(Car.Speed speed) {
+            this.speed = speed;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            main.forward(speed);
+        }
+    }
+
+    private class BackwardAction extends AbstractAction {
+
+        private Car.Speed speed;
+
+        public BackwardAction(Car.Speed speed) {
+            this.speed = speed;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            main.backward(speed);
+        }
+    }
+
+    private class LeftAction extends AbstractAction {
+
+        private Car.Speed speed;
+
+        public LeftAction(Car.Speed speed) {
+            this.speed = speed;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            main.left(speed);
+        }
+    }
+
+    private class RightAction extends AbstractAction {
+
+        private Car.Speed speed;
+
+        public RightAction(Car.Speed speed) {
+            this.speed = speed;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            main.right(speed);
+        }
+    }
+
+    private class BrakeAction extends AbstractAction {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            main.brake();
+        }
+    }
+
+    private class StraightAction extends AbstractAction {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            main.straight();
+        }
+    }
+
+    private class FinishAction extends AbstractAction {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (main.getHandler().isRunning()) main.getHandler().gameFinished();
+            System.out.println("finish called; game now running: " + main.getHandler().isRunning());
+        }
     }
 }

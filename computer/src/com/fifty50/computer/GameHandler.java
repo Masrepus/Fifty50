@@ -134,6 +134,8 @@ public class GameHandler implements OnCalibrationFininshedListener {
         raceTimer.purge();
         timerDialog.dispose();
 
+        isRunning = false;
+
         //display the game-over panel
         main.getFrame().switchMode(Frame.Mode.GAMEOVER);
     }

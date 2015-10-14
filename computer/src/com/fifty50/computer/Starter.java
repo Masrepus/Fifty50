@@ -7,8 +7,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -23,7 +21,7 @@ import java.util.TimerTask;
 /**
  * Created by samuel on 02.04.15.
  */
-public class Starter extends JLayeredPane implements Runnable, ActionListener, KeyListener {
+public class Starter extends JLayeredPane implements Runnable, ActionListener {
 
     private Main main;
     private HandDetector detector;
@@ -107,7 +105,6 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         handPanelThread.start();
         new Thread(this).start();
 
-        addKeyListener(this);
         setFocusable(true);
         requestFocus();
         requestFocusInWindow();
@@ -211,76 +208,10 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         frame.switchMode(Frame.Mode.GAME);
     }
 
-    @Override
-    public void keyTyped(KeyEvent e) {
-
-    }
-
-    @Override
-    public void keyPressed(KeyEvent e) {
-
-        switch (e.getKeyCode()) {
-
-            //keyboard controls for debugging
-            case KeyEvent.VK_W:
-                main.forward(Main.Speed.SLOW);
-                break;
-            case KeyEvent.VK_A:
-                main.left(Main.Speed.SLOW);
-                break;
-            case KeyEvent.VK_S:
-                main.backward(Main.Speed.SLOW);
-                break;
-            case KeyEvent.VK_D:
-                main.right(Main.Speed.SLOW);
-                break;
-
-            case KeyEvent.VK_UP:
-                main.forward(Main.Speed.FAST);
-                break;
-            case KeyEvent.VK_LEFT:
-                main.left(Main.Speed.FAST);
-                break;
-            case KeyEvent.VK_DOWN:
-                main.backward(Main.Speed.FAST);
-                break;
-            case KeyEvent.VK_RIGHT:
-                main.right(Main.Speed.FAST);
-                break;
-
-            case KeyEvent.VK_ENTER:
-                main.brake();
-                break;
-        }
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {
-
-        switch (e.getKeyCode()) {
-
-            case KeyEvent.VK_W:
-            case KeyEvent.VK_UP:
-            case KeyEvent.VK_S:
-            case KeyEvent.VK_DOWN:
-                main.brake();
-                break;
-            case KeyEvent.VK_A:
-            case KeyEvent.VK_LEFT:
-            case KeyEvent.VK_D:
-            case KeyEvent.VK_RIGHT:
-                main.straight();
-                break;
-        }
-
-    }
-
     public void pause() {
 
         //stop the repainting
         isFinished = true;
-
-        removeKeyListener(this);
 
         //stop the handpanel
         handPanel.closeDown();
@@ -307,9 +238,6 @@ public class Starter extends JLayeredPane implements Runnable, ActionListener, K
         //re-init the highscore loop
         highscoreLoop.reset();
 
-        addKeyListener(this);
-        setFocusable(true);
-        requestFocus();
         setVisible(true);
     }
 

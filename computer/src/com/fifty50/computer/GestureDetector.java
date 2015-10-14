@@ -1,7 +1,10 @@
 package com.fifty50.computer;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by samuel on 27.02.15.
@@ -81,10 +84,10 @@ public class GestureDetector extends Thread {
                         switch (currDirection) {
 
                             case LEFT:
-                                main.left(Main.Speed.FAST);
+                                main.left(Car.Speed.FAST);
                                 break;
                             case RIGHT:
-                                main.right(Main.Speed.FAST);
+                                main.right(Car.Speed.FAST);
                                 break;
                             case STRAIGHT:
                                 main.straight();
@@ -95,7 +98,7 @@ public class GestureDetector extends Thread {
                         switch (currSpeed) {
 
                             case ACCELERATE:
-                                main.forward(Main.Speed.FAST);
+                                main.forward(Car.Speed.FAST);
                                 break;
                             case BRAKE:
                                 main.brake();
