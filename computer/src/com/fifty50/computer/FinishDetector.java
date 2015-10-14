@@ -10,6 +10,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by samuel on 10.10.15.
@@ -17,6 +19,7 @@ import java.io.IOException;
 public class FinishDetector {
 
     private static final int MIN_BOX_SIZE = 40000;
+    private int minBoxSizeCalibrated = MIN_BOX_SIZE;
     // default HSV initial slider ranges
     private static final int HUE_LOWER = 0;
     private static final int HUE_UPPER = 179;
@@ -30,10 +33,15 @@ public class FinishDetector {
     private ColorRectDetector detector;
     private int width, height;
     private Viewer carCam;
-    private boolean isRunning;
+    private volatile boolean isRunning;
     private int hueLower, hueUpper, satLower, satUpper, briLower, briUpper;
 
     private Main main;
+    private volatile boolean calibrated, timerRunning = false;
+    private int iterations;
+
+    private Timer timer = new Timer();
+    private Thread thread;
 
     public FinishDetector(Main main, Viewer carCam, int width, int height, String hsvPath) {
         this.width = width;
@@ -57,6 +65,12 @@ public class FinishDetector {
 
     public void stop() {
         isRunning = false;
+
+    }
+
+    public void requestCalibration() {
+        thread = new Calibrator();
+        thread.start();
     }
 
     private void readHSVRanges(String fnm)
@@ -106,6 +120,10 @@ public class FinishDetector {
         return vals;
     }
 
+    public Thread getThread() {
+        return thread;
+    }
+
     private class Analyzer extends Thread {
 
         @Override
@@ -118,13 +136,7 @@ public class FinishDetector {
                 //wait until the viewer has images
                 if (img == null) continue;
 
-                //convert the image to buffered image and then to iplimage
-                /*BufferedImage bufferedImage = new BufferedImage(640, 480,
-                        BufferedImage.TYPE_INT_ARGB);
-
-                Graphics g = bufferedImage.createGraphics();
-                g.drawImage(img, 0, 0, null);
-                g.dispose();*/
+                //convert the image to buffered image and then to iplimage (image is instance of ToolkitImage)
                 opencv_core.IplImage image = opencv_core.IplImage.createFrom(((ToolkitImage) img).getBufferedImage());
 
                 //now pass this image to the rect detector
@@ -135,7 +147,7 @@ public class FinishDetector {
                     //check if the found rectangle meets the minimum size
                     Rectangle bounds = detector.getBoundedBox().getBounds();
 
-                    if (bounds.width * bounds.height >= MIN_BOX_SIZE) {
+                    if (bounds.width * bounds.height >= minBoxSizeCalibrated) {
                         System.out.println("Finish sign found: " + bounds.width + "x" + bounds.height + ", finishing game...");
                         main.getHandler().gameFinished();
                         break;
@@ -143,9 +155,87 @@ public class FinishDetector {
                 }
 
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(500);
                 } catch (InterruptedException ignored) {}
             }
+        }
+    }
+
+    private class Calibrator extends Thread {
+
+        @Override
+        public void run() {
+
+            //wait 5 seconds before start
+            main.getHandpanel().setExtraMsg("Bitte stelle das Auto zum Kalibrieren an die Ziellinie");
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {}
+
+            //wait until the livestream is working
+            while (carCam.getImage() == null) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ignored) {}
+            }
+
+            //wait for a correctly colored rectangle to appear
+            calibrated = false;
+            int avgSize = 0;
+            boolean foundRect = false;
+
+            //wait for a correctly colored rectangle to appear and then calibrate the size
+            while (!calibrated) {
+                Image img = carCam.getImage();
+                opencv_core.IplImage image = opencv_core.IplImage.createFrom(((ToolkitImage) img).getBufferedImage());
+
+                foundRect = detector.findRect(image);
+
+                if (foundRect) {
+
+                    //start the timer
+                    if (!timerRunning) {
+                        startTimer();
+
+                        //also tell handpanel that a finish flag was found and it can tell the user that the calibration phase has started
+                        main.getHandpanel().setExtraMsg("Ziellinienmarkierung wird kalibriert...");
+                    }
+
+                    int currSize = detector.getBoundedBox().getBounds().height * detector.getBoundedBox().getBounds().width;
+
+                    //calculate the average
+                    avgSize = (avgSize == 0) ? currSize : (avgSize + currSize)/2;
+                }
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException ignored) {}
+            }
+
+            timerRunning = false;
+
+            //now avgSize should be >0
+            if (avgSize <= 0) minBoxSizeCalibrated = MIN_BOX_SIZE;
+            else {
+                //save avgSize
+                minBoxSizeCalibrated = avgSize;
+                main.finishCalibrationSuccess();
+
+                //clear the user message
+                main.getHandpanel().setExtraMsg("");
+            }
+        }
+
+        private void startTimer() {
+
+            //schedule a timer for 3 seconds -> when done set calibrated to true so that the calibration process stops
+            iterations = 0;
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    if (iterations == 3) calibrated = true;
+                    else iterations++;
+                }
+            }, 1000, 1000);
         }
     }
 }

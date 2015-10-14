@@ -199,8 +199,10 @@ public class HandPanel extends JPanel implements Runnable {
 
         //if requested, draw the image that was snapped as well
         if (snapIm != null && !drawCOGOnly) {
-            g2d.setColor(Color.WHITE);
-            g2d.drawImage(snapIm.getBufferedImage(), x_offset, 0, null);
+            try {
+                g2d.setColor(Color.WHITE);
+                g2d.drawImage(snapIm.getBufferedImage(), x_offset, 0, null);
+            } catch (NullPointerException ignored) {}
         }
 
         //paint a triangle pointing to the direction where the car is currently steering to
@@ -353,6 +355,10 @@ public class HandPanel extends JPanel implements Runnable {
 
     public BufferedImage getCurrImg() {
         return currImg;
+    }
+
+    public String getExtraMsg() {
+        return extraMsg;
     }
 } // end of HandPanel class
 

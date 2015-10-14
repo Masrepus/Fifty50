@@ -7,8 +7,6 @@ import javax.swing.plaf.basic.BasicInternalFrameUI;
 import java.applet.AppletContext;
 import java.applet.AppletStub;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.net.MalformedURLException;
@@ -175,6 +173,12 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         }
         viewer.stop();
         finishDetector.stop();
+        try {
+            //wait for the detector to close
+            finishDetector.getThread().join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         setVisible(false);
     }
 
@@ -187,10 +191,9 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         setVisible(true);
         detector.start();
         viewer.init();
-        finishDetector.start();
 
-        //immediately start calibration
-        requestCalibration();
+        //first start finish line calibration, then hand calibration
+        finishDetector.requestCalibration();
 
         repaint();
         frame.repaint();
@@ -214,6 +217,8 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
         repaint();
         frame.repaint();
+
+        requestHandCalibration();
     }
 
     public void connectToServer(String serverName, int port) {
@@ -369,7 +374,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         }
     }
 
-    public void requestCalibration() {
+    public void requestHandCalibration() {
         //wait for 3 seconds
         final java.util.Timer timer = new Timer();
         final int[] count = new int[1];
@@ -396,6 +401,8 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         //handPanel.setExtraMsg("Mittelpunkt: (" + center.x + "/" + center.y + ")");
         handPanel.setExtraMsg("");
         handPanel.setIsCalibrated(true);
+
+        finishDetector.start();
     }
 
     @Override
@@ -467,6 +474,11 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
     public String getPath() {
         return path;
+    }
+
+    public void finishCalibrationSuccess() {
+        //now hand calibration
+        requestHandCalibration();
     }
 
     private class Connector extends Thread {

@@ -126,6 +126,8 @@ public class GameHandler implements OnCalibrationFininshedListener {
 
     public void gameFinished() {
 
+        if (!isRunning) return;
+
         //calculate the score based on the elapsed time
         score = (MAX_TIME_MILLIS - millis) * POINTS_PER_SEC/1000;
 

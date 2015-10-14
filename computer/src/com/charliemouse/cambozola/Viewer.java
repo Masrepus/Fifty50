@@ -937,6 +937,6 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
     }
 
     public Image getImage() {
-        return m_imgStream.getCurrent();
+        return (m_imgStream == null) ? null : m_imgStream.getCurrent();
     }
 }
