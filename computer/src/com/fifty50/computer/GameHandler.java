@@ -97,6 +97,7 @@ public class GameHandler implements OnCalibrationFininshedListener {
                         //start the game!
                         isRunning = true;
                         new GameFlow().start();
+                        main.getFinishDetector().start();
                         break;
                 }
 
@@ -161,7 +162,6 @@ public class GameHandler implements OnCalibrationFininshedListener {
 
         @Override
         public void run() {
-
             showTimer();
         }
 

@@ -37,6 +37,8 @@ public class GestureDetector extends Thread {
 
     private boolean isRunning;
 
+    private Thread detectorThread;
+
 
     public GestureDetector(Main main, HandPanel panel, GameHandler handler) {
         this.main = main;
@@ -108,6 +110,8 @@ public class GestureDetector extends Thread {
                 }
             }
         }
+
+        System.out.println("Gesture detector terminated");
     }
 
     public int angleMovingAverage(int angle) {
@@ -150,6 +154,17 @@ public class GestureDetector extends Thread {
         center = null;
     }
 
+    public void startThread(Thread detectorThread) {
+        this.detectorThread = detectorThread;
+
+        //start it
+        this.detectorThread.start();
+    }
+
+    public Thread getDetectorThread() {
+        return detectorThread;
+    }
+
     private class Calibrator extends Thread {
 
         @Override
@@ -164,8 +179,7 @@ public class GestureDetector extends Thread {
                     if (count[0] < 6) {
                         count[0]++;
                         pointsCache.add(detector.getCogPoint());
-                    }
-                    else {
+                    } else {
                         pointsCache.add(detector.getCogPoint());
                         timer.cancel();
 
@@ -179,7 +193,7 @@ public class GestureDetector extends Thread {
                         averageX = totalX / pointsCache.size();
                         averageY = totalY / pointsCache.size();
 
-                        center = new Point((int)averageX, (int)averageY);
+                        center = new Point((int) averageX, (int) averageY);
 
                         //notify the registered listeners
                         for (OnCalibrationFininshedListener listener : listeners) {

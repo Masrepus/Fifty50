@@ -88,9 +88,9 @@ public class FinishCalibrator extends JFrame {
         ctrlPanel.add(startBut);
 
         setResizable(true);
-        setSize(WIDTH, 600);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         pack();
+        setSize(WIDTH, 600);
         setLocationRelativeTo(null);
         setVisible(true);
 

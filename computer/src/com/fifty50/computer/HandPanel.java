@@ -127,7 +127,7 @@ public class HandPanel extends JPanel implements Runnable {
             }
         }
         closeGrabber(grabber, CAMERA_ID);
-        System.out.println("Execution terminated");
+        System.out.println("HandPanel terminated");
         isFinished = true;
     }  // end of run()
 
@@ -317,6 +317,13 @@ public class HandPanel extends JPanel implements Runnable {
         handPanelThread = new Thread(this);
         // start updating the panel's image beacuse the gesture detector is ready
         handPanelThread.start();
+    }
+
+    public void startHandPanelThread(Thread handPanelThread) {
+        this.handPanelThread = handPanelThread;
+
+        //start it
+        this.handPanelThread.start();
     }
 
     public void setIsCalibrated(boolean isCalibrated) {

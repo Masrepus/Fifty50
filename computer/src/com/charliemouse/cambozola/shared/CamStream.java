@@ -58,6 +58,7 @@ public class CamStream extends Thread {
 	private int m_retryDelay = 1000;
 	private String m_appName = "";
     private boolean m_debug = true;
+    private boolean isRunning;
 
     public CamStream(URL strm, String app, URL docBase, int retryCount, int retryDelay, ExceptionReporter reporter, boolean debug)
 	{
@@ -150,9 +151,10 @@ public class CamStream extends Thread {
 	public void run()
 	{
 		StreamSplit ssplit;
+        isRunning = true;
 
         //don't stop looping if there was an exception, just sleep a bit
-        while (isAlive()) {
+        while (isRunning) {
             try {
                 //
                 // Loop for a while until we either give up (hit m_retryCount), or
@@ -356,6 +358,8 @@ public class CamStream extends Thread {
             //  will leave the last frame up]
             //
         }
+
+        System.out.println("CamStream terminated");
 	}
 
 	private synchronized void updateImage(String ctype, byte[] img)
@@ -392,6 +396,7 @@ public class CamStream extends Thread {
 	{
 		m_collecting = false;
 		m_isDefunct = true;
+        isRunning = false;
 		try {
 			if (m_inputStream != null)
 			{

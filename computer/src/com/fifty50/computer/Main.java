@@ -156,7 +156,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
     }
 
     public void pause() {
-        //stop everything
+        //stop everything and join the threads for save stopping
         handPanel.closeDown();
         try {
             //wait for the panel to close
@@ -167,15 +167,23 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         detector.close();
         try {
             //wait for the detector to close
-            detector.join();
+            detector.getDetectorThread().join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         viewer.stop();
+        try {
+            //wait for the viewer to close
+            viewer.getStreamerThread().join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        viewer.clearStreamer();
+
         finishDetector.stop();
         try {
             //wait for the detector to close
-            finishDetector.getThread().join();
+            finishDetector.getAnalyzerThread().join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -189,11 +197,11 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         detector = new GestureDetector(this, handPanel, handler);
         handPanel.setVisible(true);
         setVisible(true);
-        detector.start();
+        detector.startThread(new Thread(detector));
         viewer.init();
 
-        //first start finish line calibration, then hand calibration
-        finishDetector.requestCalibration();
+        //immediately start calibration
+        requestCalibration();
 
         repaint();
         frame.repaint();
@@ -204,13 +212,13 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         //restart the hand panel and the other components
         popup.dispose();
         handPanel.setIsCalibrated(false);
-        new Thread(handPanel).start();
+        handPanel.startHandPanelThread(new Thread(handPanel));
         handPanel.setVisible(true);
         finishDetector.start();
 
         setVisible(true);
 
-        new Thread(detector).start();
+        detector.startThread(new Thread(detector));
         viewer.init();
 
         handler.reset();
@@ -218,7 +226,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         repaint();
         frame.repaint();
 
-        requestHandCalibration();
+        requestCalibration();
     }
 
     public void connectToServer(String serverName, int port) {
@@ -374,7 +382,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         }
     }
 
-    public void requestHandCalibration() {
+    public void requestCalibration() {
         //wait for 3 seconds
         final java.util.Timer timer = new Timer();
         final int[] count = new int[1];
@@ -401,8 +409,6 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         //handPanel.setExtraMsg("Mittelpunkt: (" + center.x + "/" + center.y + ")");
         handPanel.setExtraMsg("");
         handPanel.setIsCalibrated(true);
-
-        finishDetector.start();
     }
 
     @Override
@@ -476,9 +482,8 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         return path;
     }
 
-    public void finishCalibrationSuccess() {
-        //now hand calibration
-        requestHandCalibration();
+    public FinishDetector getFinishDetector() {
+        return finishDetector;
     }
 
     private class Connector extends Thread {
