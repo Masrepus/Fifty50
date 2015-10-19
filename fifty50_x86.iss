@@ -61,6 +61,8 @@ Source: "Z:\home\samuel\fifty50\hintergrund_16-9.png"; DestDir: "{app}"; Flags: 
 Source: "Z:\home\samuel\fifty50\hintergrund_4-3.png"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Z:\home\samuel\fifty50\null.png"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Z:\home\samuel\fifty50\ranking.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\finish.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Z:\home\samuel\fifty50\finishSize.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Z:\home\samuel\fifty50\start_fokussiert_1.png"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Z:\home\samuel\fifty50\start_fokussiert_2.png"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Z:\home\samuel\fifty50\start_fokussiert_3.png"; DestDir: "{app}"; Flags: ignoreversion

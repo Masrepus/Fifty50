@@ -45,7 +45,7 @@ public class FinishCalibrator extends JFrame {
     private DecimalFormat format = new DecimalFormat("##.#");
 
     private Timer timer = new Timer();
-    private String path;
+    private String basePath, hsvFnm, sizeFnm;
 
     private Rectangle boundedBox;
 
@@ -56,12 +56,14 @@ public class FinishCalibrator extends JFrame {
     public FinishCalibrator(final String[] args) {
 
         super("Ziellinie Kalibrieren");
-        path = args[0];
+        basePath = args[0];
+        hsvFnm = args[1];
+        sizeFnm = args[2];
 
         Container c = getContentPane();
         c.setLayout(new BorderLayout());
 
-        viewer = initViewer(args[1]);
+        viewer = initViewer(args[3]);
         viewer.setBounds(0, 0, WIDTH, HEIGHT);
         viewer.init();
         c.add(viewer, BorderLayout.NORTH);
@@ -156,12 +158,12 @@ public class FinishCalibrator extends JFrame {
 
         //save the size of the finish flag in percent of the total size
         try {
-            PrintWriter out = new PrintWriter(new FileWriter(new File(path + "finishSize.txt")));
+            PrintWriter out = new PrintWriter(new FileWriter(new File(basePath + sizeFnm)));
             out.println("size: " + format.format(avgSize));
             out.close();
-            System.out.println("Saved relative size to " + path + "finishSize.txt");
+            System.out.println("Saved relative size to " + basePath + "finishSize.txt");
         } catch (IOException e) {
-            System.out.println("Could not save relative size to " + path + "finishSize.txt");
+            System.out.println("Could not save relative size to " + basePath + "finishSize.txt");
         }
     }
 
@@ -210,7 +212,7 @@ public class FinishCalibrator extends JFrame {
 
         private void initDetector() {
 
-            readHSVRanges(path + "finish.txt");
+            readHSVRanges(basePath + hsvFnm);
 
             // update detectors HSV settings
             detector.setHueRange(hueLower, hueUpper);
