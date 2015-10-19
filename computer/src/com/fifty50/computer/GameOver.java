@@ -44,7 +44,7 @@ public class GameOver extends JLayeredPane implements Runnable {
         if (tk.getScreenSize().width / tk.getScreenSize().height == 16 / 9) bgImg += "_16-9.png";
         else bgImg += "_4-3.png";
         try {
-            BackgroundPanel background = new BackgroundPanel(ImageIO.read(new File(path + bgImg)), width, height);
+            BackgroundPanel background = new BackgroundPanel(ImageIO.read(new File(path + File.separator + bgImg)), width, height);
             background.setBounds(0, 0, width, height);
             background.setVisible(true);
             add(background, 1, 0);
