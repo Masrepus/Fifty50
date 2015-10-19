@@ -193,7 +193,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
     public void start() {
 
         //init the GestureDetector and start everything
-        popup.dispose();
+        if (popup != null) popup.dispose();
         detector = new GestureDetector(this, handPanel, handler);
         handPanel.setVisible(true);
         setVisible(true);
@@ -210,7 +210,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
     public void restart() {
 
         //restart the hand panel and the other components
-        popup.dispose();
+        if (popup != null) popup.dispose();
         handPanel.setIsCalibrated(false);
         handPanel.startHandPanelThread(new Thread(handPanel));
         handPanel.setVisible(true);
