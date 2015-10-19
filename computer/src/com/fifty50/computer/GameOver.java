@@ -104,7 +104,7 @@ public class GameOver extends JLayeredPane implements Runnable {
 
         //first read the current ranking
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(path + "ranking.txt"));
+            BufferedReader reader = new BufferedReader(new FileReader(path + File.separator + "ranking.txt"));
             String line;
             ArrayList<Integer> ranks = new ArrayList<Integer>();
 
@@ -132,7 +132,7 @@ public class GameOver extends JLayeredPane implements Runnable {
             }
 
             //now add the current player's score to the list, including a path to his action photo
-            BufferedWriter writer = new BufferedWriter(new FileWriter(path + "ranking.txt", true));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(path + File.separator + "ranking.txt", true));
             writer.write(score + "," + photoFnm);
             writer.newLine();
             writer.flush();
@@ -162,7 +162,7 @@ public class GameOver extends JLayeredPane implements Runnable {
 
         //display the action photo in the center at 440x440 px (if screen = 1920x1080, else scale accordingly)
         try {
-            BufferedImage actionImg = ImageIO.read(new File(path + "actionImgs" + File.separator + photoFnm));
+            BufferedImage actionImg = ImageIO.read(new File(path + File.separator + "actionImgs" + File.separator + photoFnm));
             int width = actionImg.getWidth();
             int height = actionImg.getHeight();
 
