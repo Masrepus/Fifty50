@@ -352,6 +352,9 @@ public class Main {
                     DataInputStream in = new DataInputStream(client.getInputStream());
                     out = new DataOutputStream(client.getOutputStream());
 
+                    //say hello to the new client
+                    out.writeUTF("Hallo client!");
+
                     //wait for commands from the client
                     String command = "";
                     while (!client.isClosed()) {
