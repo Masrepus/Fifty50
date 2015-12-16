@@ -37,6 +37,9 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
     private FinishDetector finishDetector;
 
     private volatile Car.PinState fwdFast, fwdSlow, bwdFast, bwdSlow, leftFast, leftSlow, rightFast, rightSlow;
+    private boolean keyboardMode = true;
+    private JOptionPane pane;
+    private JInternalFrame keyboardPopup;
 
     public Main(String[] args) {
         this.args = args;
@@ -194,10 +197,15 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
 
         //init the GestureDetector and start everything
         if (popup != null) popup.dispose();
+        if (keyboardPopup != null) keyboardPopup.dispose();
         detector = new GestureDetector(this, handPanel, handler);
         handPanel.setVisible(true);
         setVisible(true);
-        detector.startThread(new Thread(detector));
+
+        //only start the gesture detector if keyboard mode is inactive! Else the detector overrides the commands the keyboard actions send to the car
+        if (!keyboardMode) detector.startThread(new Thread(detector));
+        else detector.disable(new Thread(detector));
+
         viewer.init();
 
         //immediately start calibration
@@ -486,13 +494,71 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         return finishDetector;
     }
 
+    public void disableGestureDetector() {
+        detector.close();
+
+        //disable it every round until this is changed
+        keyboardMode = true;
+    }
+
+    public void enableGestureDetector() {
+        //start gesture detector next round
+        keyboardMode = false;
+    }
+
+    public void notifyKeyboardModeActive() {
+        if (keyboardPopup != null) keyboardPopup.dispose();
+
+        //now show an updated popup with keyboard mode active
+        showKeyboardPopup("Tastaturmodus");
+    }
+
+    public void showKeyboardPopup(String message) {
+
+        //wait until frame is shown
+        while (!frame.isVisible()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ignored) {}
+        }
+
+        if (pane == null) pane = new JOptionPane("", JOptionPane.PLAIN_MESSAGE,
+                JOptionPane.DEFAULT_OPTION, null, null, null);
+
+        //if there is already an old popup, dispose it
+        if (keyboardPopup != null) keyboardPopup.dispose();
+
+        keyboardPopup = pane.createInternalFrame(Main.this, "");
+        ((BasicInternalFrameUI) keyboardPopup.getUI()).setNorthPane(null);
+        keyboardPopup.setBackground(Color.BLACK);
+
+        //set up the label that will display the message
+        JLabel label = new JLabel(message, JLabel.CENTER);
+        label.setForeground(Color.WHITE);
+        label.setBackground(Color.BLACK);
+        label.setOpaque(true);
+
+        Rectangle2D stringBounds = label.getFontMetrics(label.getFont()).getStringBounds(message, null);
+        int stringLen = (int) stringBounds.getWidth();
+        int stringHeight = (int) stringBounds.getHeight();
+
+        keyboardPopup.getRootPane().removeAll();
+        keyboardPopup.getRootPane().add(label);
+        //center the label
+        label.setBounds(17, (50-stringHeight)/2, stringLen, stringHeight);
+
+        //bottom left corner
+        keyboardPopup.setBounds(20, height - 70, stringLen + 40, 50);
+        label.setVisible(true);
+        keyboardPopup.setVisible(true);
+    }
+
     private class Connector extends Thread {
 
         private String serverName;
         private int port;
         private boolean connected;
         private Socket client;
-        private JOptionPane pane;
 
         public Connector(String serverName, int port) {
             this.serverName = serverName;
@@ -519,7 +585,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
                     connected = true;
 
                     //show a "connected" internal frame popup
-                    showPopup();
+                    showPopup("Verbunden mit Auto: " + client.getRemoteSocketAddress());
                 } catch (IOException e) {
                     System.out.println("Verbindung fehlgeschlagen, warte...");
                     try {
@@ -535,7 +601,11 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
             return connected;
         }
 
-        public void showPopup() {
+        public Socket getClient() {
+            return client;
+        }
+
+        public void showPopup(String message) {
 
             //wait until frame is shown
             while (!frame.isVisible()) {
@@ -553,8 +623,6 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
             popup = pane.createInternalFrame(Main.this, "");
             ((BasicInternalFrameUI) popup.getUI()).setNorthPane(null);
             popup.setBackground(Color.BLACK);
-
-            String message = "Verbunden mit Auto: " + client.getRemoteSocketAddress();
 
             //set up the label that will display the message
             JLabel label = new JLabel(message, JLabel.CENTER);

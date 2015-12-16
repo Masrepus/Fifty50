@@ -35,7 +35,7 @@ public class GestureDetector extends Thread {
     final ArrayList<Point> pointsCache = new ArrayList<Point>();
     private ArrayList<OnCalibrationFininshedListener> listeners = new ArrayList<OnCalibrationFininshedListener>();
 
-    private boolean isRunning;
+    private boolean isRunning, keyboardMode;
 
     private Thread detectorThread;
 
@@ -54,8 +54,6 @@ public class GestureDetector extends Thread {
 
     @Override
     public void run() {
-
-        isRunning = true;
 
         while (isRunning) {
 
@@ -112,6 +110,7 @@ public class GestureDetector extends Thread {
         }
 
         System.out.println("Gesture detector terminated");
+        if (keyboardMode) main.notifyKeyboardModeActive();
     }
 
     public int angleMovingAverage(int angle) {
@@ -156,6 +155,8 @@ public class GestureDetector extends Thread {
 
     public void startThread(Thread detectorThread) {
         this.detectorThread = detectorThread;
+        isRunning = true;
+        keyboardMode = false;
 
         //start it
         this.detectorThread.start();
@@ -163,6 +164,14 @@ public class GestureDetector extends Thread {
 
     public Thread getDetectorThread() {
         return detectorThread;
+    }
+
+    public void disable(Thread dummyThread) {
+        //set detectorThread to dummyThread and let it finish. Like that there won't be any exceptions when close() is called
+        detectorThread = dummyThread;
+        isRunning = false;
+        keyboardMode = true;
+        detectorThread.start();
     }
 
     private class Calibrator extends Thread {
