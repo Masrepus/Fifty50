@@ -604,7 +604,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
                     else if (message.contains("right fast")) rightFast = Car.PinState.parse(message.split("\\s+")[2]);
                     else if (message.contains("right slow")) rightSlow = Car.PinState.parse(message.split("\\s+")[2]);
 
-                    else System.out.println(message);
+                    System.out.println("Nachricht vom Auto: " + message);
 
                 } catch (Exception ignored) {}
             }
