@@ -594,7 +594,7 @@ public class HandDetector {
     }
 
     public int getContourAxisAngle() {
-        return contourAxisAngle;
+        return contourAxisAngle - 180; //image flipped!
     }
 
     public Point getCogFlipped() {

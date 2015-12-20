@@ -37,7 +37,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
     private FinishDetector finishDetector;
 
     private volatile Car.PinState fwdFast, fwdSlow, bwdFast, bwdSlow, leftFast, leftSlow, rightFast, rightSlow;
-    private boolean keyboardMode = true;
+    private boolean keyboardMode = false;
     private JOptionPane pane;
     private JInternalFrame keyboardPopup;
 

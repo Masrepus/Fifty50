@@ -60,7 +60,7 @@ public class GestureDetector extends Thread {
             //only start sending commands after calibration
             if (center != null) {
                 try {
-                    handPosition = detector.getCogPoint();
+                    handPosition = detector.getCogFlipped();
                     smoothFingers = detector.getFingerTips().size();
 
                     //accelerate if there are fingers being shown and the hand is not below the horizontal line, else brake
@@ -77,10 +77,10 @@ public class GestureDetector extends Thread {
 
                     //steer to the left or to the right if the hand is pointing either left or right and it is right/left of the center of the player
 
-                    if (smoothAngle > -20 && smoothAngle < 80 && handPosition.getX() > (center.getX() + CENTER_THRESHOLD) && currDrivingMode != Car.DrivingMode.BRAKE) {
-                        currDirection = Car.Direction.LEFT;
-                    } else if (smoothAngle > 100 && smoothAngle < 200 && handPosition.getX() < (center.getX() - CENTER_THRESHOLD) && currDrivingMode != Car.DrivingMode.BRAKE) {
+                    if (handPosition.getX() > (center.getX() + CENTER_THRESHOLD) && currDrivingMode != Car.DrivingMode.BRAKE) {
                         currDirection = Car.Direction.RIGHT;
+                    } else if (handPosition.getX() < (center.getX() - CENTER_THRESHOLD) && currDrivingMode != Car.DrivingMode.BRAKE) {
+                        currDirection = Car.Direction.LEFT;
                     } else currDirection = Car.Direction.STRAIGHT;
 
                     //now send the current direction to the car, if it isn't the same as last time
