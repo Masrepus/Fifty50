@@ -244,7 +244,14 @@ public class GameHandler implements OnCalibrationFininshedListener {
                                 new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
                         actionImgScaled = scaleOp.filter(actionImg, actionImgScaled);
 
-                        ImageIO.write(actionImgScaled, "JPEG", new File(main.getPath() + File.separator + "actionImgs" + File.separator + photoFnm));
+                        BufferedImage actionImgFlipped = new BufferedImage(actionImg.getWidth()/2, actionImg.getHeight()/2, actionImg.getType());
+                        at = new AffineTransform();
+                        at.scale(1, -1);
+                        at.translate(0, -actionImgScaled.getHeight());
+                        AffineTransformOp flipOp = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+                        actionImgFlipped = flipOp.filter(actionImgScaled, actionImgFlipped);
+
+                        ImageIO.write(actionImgFlipped, "JPEG", new File(main.getPath() + File.separator + "actionImgs" + File.separator + photoFnm));
 
                         photoTaken = true;
                     } catch (IOException e) {
