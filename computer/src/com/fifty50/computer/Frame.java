@@ -30,6 +30,14 @@ public class Frame extends JFrame {
     private boolean gameHasRun;
     private boolean keyboardActive = false;
 
+    public Car.Direction getCurrDirection() {
+        return main.getCurrDirection();
+    }
+
+    public Car.DrivingMode getCurrDrivingMode() {
+        return main.getCurrDrivingMode();
+    }
+
     public enum Mode {STARTSCREEN, GAME, GAMEOVER}
 
     public Frame(String[] args) {

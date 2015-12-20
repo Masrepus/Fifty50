@@ -553,6 +553,30 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         keyboardPopup.setVisible(true);
     }
 
+    public Car.Direction getCurrDirection() {
+
+        //check pin states in order to find out what the current direction is
+        Car.Direction currDirection;
+
+        if (leftFast == Car.PinState.HIGH || leftSlow == Car.PinState.HIGH) currDirection = Car.Direction.LEFT;
+        else if (rightFast == Car.PinState.HIGH || rightSlow == Car.PinState.HIGH) currDirection = Car.Direction.RIGHT;
+        else currDirection = Car.Direction.STRAIGHT;
+
+        return currDirection;
+    }
+
+    public Car.DrivingMode getCurrDrivingMode() {
+
+        //check pin states in order to find out the current driving mode
+        Car.DrivingMode currDrivingMode;
+
+        if (fwdFast == Car.PinState.HIGH || fwdSlow == Car.PinState.HIGH) currDrivingMode = Car.DrivingMode.FORWARD;
+        else if (bwdFast == Car.PinState.HIGH || bwdSlow == Car.PinState.HIGH) currDrivingMode = Car.DrivingMode.BACKWARD;
+        else currDrivingMode = Car.DrivingMode.BRAKE;
+
+        return currDrivingMode;
+    }
+
     private class Connector extends Thread {
 
         private String serverName;

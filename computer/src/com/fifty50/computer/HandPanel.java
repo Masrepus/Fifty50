@@ -9,7 +9,6 @@ package com.fifty50.computer;
 */
 
 import com.googlecode.javacv.FrameGrabber;
-import com.googlecode.javacv.cpp.opencv_core;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,7 +17,6 @@ import java.awt.image.BufferedImage;
 import java.lang.reflect.Field;
 
 import static com.googlecode.javacv.cpp.opencv_core.IplImage;
-import static com.googlecode.javacv.cpp.opencv_core.cvFlip;
 
 
 public class HandPanel extends JPanel implements Runnable {
@@ -211,16 +209,31 @@ public class HandPanel extends JPanel implements Runnable {
 
         //if only the cog should be drawn, skip this section
         if (!drawCOGOnly && gestureDetector != null) {
-            if (gestureDetector.getCurrDirection() == GestureDetector.Direction.RIGHT) { //image flipped!
+
+            //left/right/straight
+            if (frame.getCurrDirection() == Car.Direction.LEFT) {
                 g2d.setColor(Color.RED);
                 g2d.fillPolygon(new int[]{x_offset - 30, x_offset - 10, x_offset - 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
-            } else if (gestureDetector.getCurrDirection() == GestureDetector.Direction.LEFT) {
+            } else if (frame.getCurrDirection() == Car.Direction.RIGHT) {
                 g2d.setColor(Color.RED);
                 g2d.fillPolygon(new int[]{x_offset + width + 30, x_offset + width + 10, x_offset + width + 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
             } else {
                 g2d.setColor(Color.WHITE);
                 g2d.fillPolygon(new int[]{x_offset - 30, x_offset - 10, x_offset - 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
                 g2d.fillPolygon(new int[]{x_offset + width + 30, x_offset + width + 10, x_offset + width + 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+            }
+
+            //forward/backward/brake
+            if (frame.getCurrDrivingMode() == Car.DrivingMode.FORWARD) {
+                g2d.setColor(Color.RED);
+                g2d.fillPolygon(new int[]{x_offset - 30, x_offset - 10, x_offset - 20}, new int[]{centerVertical + 60, centerVertical + 60, centerVertical + 80}, 3);
+            } else if (frame.getCurrDrivingMode() == Car.DrivingMode.BACKWARD) {
+                g2d.setColor(Color.RED);
+                g2d.fillPolygon(new int[]{x_offset - 30, x_offset - 10, x_offset - 20}, new int[]{centerVertical + 50, centerVertical + 50, centerVertical + 30}, 3);
+            } else {
+                g2d.setColor(Color.WHITE);
+                g2d.fillPolygon(new int[]{x_offset - 30, x_offset - 10, x_offset - 20}, new int[]{centerVertical + 60, centerVertical + 60, centerVertical + 80}, 3);
+                g2d.fillPolygon(new int[]{x_offset - 30, x_offset - 10, x_offset - 20}, new int[]{centerVertical + 50, centerVertical + 50, centerVertical + 30}, 3);
             }
 
             //paint a vertical line where the player has set his center point if calibration has been done already
@@ -280,7 +293,7 @@ public class HandPanel extends JPanel implements Runnable {
         if (imageCount > 0) {
             String statsMsg = String.format("Snap Avg. Time:  %.1f ms",
                     ((double) totalTime / imageCount));
-            g2d.drawString(statsMsg + ", Contour angle: " + gestureDetector.getSmoothAngle() + "°, " + "Fingers: " + gestureDetector.getFingerCount() + ", " + gestureDetector.getCurrSpeed() + ", " + gestureDetector.getCurrDirection() + "    " + extraMsg, 5, y + height - 30);
+            g2d.drawString(statsMsg + ", Contour angle: " + gestureDetector.getSmoothAngle() + "°, " + "Fingers: " + gestureDetector.getFingerCount() + ", " + gestureDetector.getCurrDrivingMode() + ", " + gestureDetector.getCurrDirection() + "    " + extraMsg, 5, y + height - 30);
             // write statistics in bottom-left corner
         } else  // no image yet
             g2d.drawString("Loading...", 5, y + height - 30);
