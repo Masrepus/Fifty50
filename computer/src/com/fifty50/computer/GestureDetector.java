@@ -64,10 +64,13 @@ public class GestureDetector extends Thread {
                     smoothFingers = detector.getFingerTips().size();
 
                     //accelerate if there are fingers being shown and the hand is not below the horizontal line, else brake
-                    if (smoothFingers == 0 || handPosition.y > center.y + 10) {
+                    if (smoothFingers == 0) {
                         currSpeed = Speed.BRAKE;
-                    } else currSpeed = Speed.ACCELERATE;
-
+                    } else if (handPosition.y > center.y + 10) {
+                        //go backwards if the hand is below the horizontal line and either left or right from the brake zone, else brake
+                        if (handPosition.getX() > (center.getX() + CENTER_THRESHOLD) || handPosition.getX() < (center.getX() - CENTER_THRESHOLD)) currSpeed = Speed.BACKWARD;
+                        else currSpeed = Speed.BRAKE;
+                    } else currSpeed = Speed.FORWARD;
 
                     //check the angle
                     smoothAngle = angleMovingAverage(detector.getContourAxisAngle());
@@ -97,8 +100,11 @@ public class GestureDetector extends Thread {
                     //now send the current speed mode
                         switch (currSpeed) {
 
-                            case ACCELERATE:
+                            case FORWARD:
                                 main.forward(Car.Speed.FAST);
+                                break;
+                            case BACKWARD:
+                                main.backward(Car.Speed.FAST);
                                 break;
                             case BRAKE:
                                 main.brake();
@@ -215,5 +221,5 @@ public class GestureDetector extends Thread {
     }
 
     public enum Direction {LEFT, RIGHT, STRAIGHT}
-    public enum Speed {ACCELERATE, BRAKE}
+    public enum Speed {FORWARD, BACKWARD, BRAKE}
 }
