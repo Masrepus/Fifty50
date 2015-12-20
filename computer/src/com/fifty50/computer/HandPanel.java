@@ -9,6 +9,7 @@ package com.fifty50.computer;
 */
 
 import com.googlecode.javacv.FrameGrabber;
+import com.googlecode.javacv.cpp.opencv_core;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,6 +18,7 @@ import java.awt.image.BufferedImage;
 import java.lang.reflect.Field;
 
 import static com.googlecode.javacv.cpp.opencv_core.IplImage;
+import static com.googlecode.javacv.cpp.opencv_core.cvFlip;
 
 
 public class HandPanel extends JPanel implements Runnable {
@@ -190,18 +192,17 @@ public class HandPanel extends JPanel implements Runnable {
         Graphics2D g2d = (Graphics2D) g;
 
         //flip the canvas
-        AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
-        tx.translate(-width, 0);
+        AffineTransform tx = AffineTransform.getScaleInstance(1, -1);
+        tx.translate(0, -height);
         g2d.transform(tx);
 
-        //x offset calculations somehow not necessary anymore
-        int x_offset = -x, y_offset = 0;
+        int x_offset = x, y_offset = 0;
 
         //if requested, draw the image that was snapped as well
         if (snapIm != null && !drawCOGOnly) {
             try {
                 g2d.setColor(Color.WHITE);
-                g2d.drawImage(snapIm.getBufferedImage(), x_offset, 0, null);
+                g2d.drawImage(snapIm.getBufferedImage(), x_offset, 10, null);
             } catch (NullPointerException ignored) {}
         }
 
@@ -252,10 +253,10 @@ public class HandPanel extends JPanel implements Runnable {
                 int start = width / 2 - stringLen / 2;
 
                 g2d.setColor(Color.WHITE);
-                g2d.fillRect(-x_offset + start - 5, y_offset + height - 50, stringLen + 5, 50);
+                g2d.fillRect(x_offset + start - 5, y_offset + height - 50, stringLen + 5, 50);
 
                 g2d.setColor(Color.BLUE);
-                g2d.drawString(extraMsg, start - x_offset, y_offset + height - 30);
+                g2d.drawString(extraMsg, start + x_offset, y_offset + height - 30);
             }
         }
     }

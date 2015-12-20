@@ -538,32 +538,36 @@ public class HandDetector {
         // label the finger tips in red or green, and draw COG lines to named tips
         g2d.setFont(msgFont);
 
-        int x_offset = x, y_offset = 0;
+        int x_offset = x, y_offset = 10;
 
-        int cogPtX_flipped;
+        int cogPtX_flipped = cogPt.x, cogPtY_flipped;
 
-        if (cogPt.x < (width / 2)) cogPtX_flipped = cogPt.x + (((width / 2) - cogPt.x) * 2);
-        else cogPtX_flipped = cogPt.x - ((cogPt.x - (width / 2)) * 2);
+        /*if (cogPt.x < (width / 2)) cogPtX_flipped = cogPt.x + (((width / 2) - cogPt.x) * 2);
+        else cogPtX_flipped = cogPt.x - ((cogPt.x - (width / 2)) * 2);*/
+        if (cogPt.y < (width / 2)) cogPtY_flipped = cogPt.y + (((height / 2) - cogPt.y) * 2);
+        else cogPtY_flipped = cogPt.y - ((cogPt.y - (height / 2)) * 2);
 
         //skip this if requested
         if (!drawCOGOnly) {
             for (int i = 0; i < fingerTips.size(); i++) {
                 Point pt = fingerTips.get(i);
-                int ptX_flipped;
+                int ptX_flipped = pt.x, ptY_flipped;
                 //handle the flipped image
-                if (pt.x < (width / 2)) ptX_flipped = pt.x + (((width / 2) - pt.x) * 2);
-                else ptX_flipped = pt.x - ((pt.x - (width / 2)) * 2);
+                /*if (pt.x < (width / 2)) ptX_flipped = pt.x + (((width / 2) - pt.x) * 2);
+                else ptX_flipped = pt.x - ((pt.x - (width / 2)) * 2);*/
+                if (pt.y < (height / 2)) ptY_flipped = pt.y + (((height / 2) - pt.y) * 2);
+                else ptY_flipped = pt.y - ((pt.y - (height / 2)) * 2);
 
                 if (namedFingers.get(i) == FingerName.UNBEKANNT) {
                     g2d.setPaint(Color.RED);   // unnamed finger tip is red
-                    g2d.drawOval(ptX_flipped - 8 + x_offset, pt.y - 8 + y_offset, 16, 16);
-                    g2d.drawString("" + i, ptX_flipped + x_offset, pt.y - 10 + y_offset);   // label it with a digit
+                    g2d.drawOval(ptX_flipped - 8 + x_offset, ptY_flipped - 8 + y_offset, 16, 16);
+                    g2d.drawString("" + i, ptX_flipped + x_offset, ptY_flipped - 10 + y_offset);   // label it with a digit
                 } else {   // draw yellow line to the named finger tip from COG
                     g2d.setColor(Color.YELLOW);
-                    g2d.drawLine(cogPtX_flipped + x_offset, cogPt.y + y_offset, ptX_flipped + x_offset, pt.y + y_offset);
+                    g2d.drawLine(cogPtX_flipped + x_offset, cogPtY_flipped + y_offset, ptX_flipped + x_offset, ptY_flipped + y_offset);
 
                     g2d.setColor(Color.GREEN);   // named finger tip is green
-                    g2d.drawOval(ptX_flipped - 8 + x_offset, pt.y - 8 + y_offset, 16, 16);
+                    g2d.drawOval(ptX_flipped - 8 + x_offset, ptY_flipped - 8 + y_offset, 16, 16);
 
                     //don't draw finger names
                     //g2d.drawString(namedFingers.get(i).toString().toLowerCase(), ptX_flipped + x, pt.y - 10 + y);
@@ -573,7 +577,7 @@ public class HandDetector {
 
         // draw COG
         g2d.setColor(Color.GREEN);
-        g2d.fillOval(cogPtX_flipped - 8 + x_offset, cogPt.y - 8 + y_offset, 16, 16);
+        g2d.fillOval(cogPtX_flipped - 8 + x_offset, cogPtY_flipped - 8 + y_offset, 16, 16);
     }  // end of draw()
 
 
@@ -595,13 +599,15 @@ public class HandDetector {
 
     public Point getCogFlipped() {
         //calculate the cog x coordinate to be used with a flipped image
-        double x, y;
-        if (cogPt.x < (width / 2)) x = cogPt.x + (((width / 2) - cogPt.x) * 2);
-        else x = cogPt.x - ((cogPt.x - (width / 2)) * 2);
+        double x = cogPt.getX(), y;
+        /*if (cogPt.x < (width / 2)) x = cogPt.x + (((width / 2) - cogPt.x) * 2);
+        else x = cogPt.x - ((cogPt.x - (width / 2)) * 2);*/
+        if (cogPt.y < (height / 2)) y = cogPt.y + (((height / 2) - cogPt.y) * 2);
+        else y = cogPt.y - ((cogPt.y - (height / 2)) * 2);
 
         //the snapIm might have a different size than the full panel so we have to convert the coordinates
         x = (x / width) * panelWidth;
-        y = (cogPt.getY() / height) * panelHeight;
+        y = (y / height) * panelHeight;
         return new Point((int) x, (int) y);
     }
 
