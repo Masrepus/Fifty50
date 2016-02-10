@@ -181,7 +181,7 @@ public class Main {
         public void run() {
             while (!finish) {
                 try {
-                    System.out.println("Warte auf Client (Port " +
+                    System.out.println("Warte auf Client (" + serverSocket.getInetAddress() + " Port " +
                             serverSocket.getLocalPort() + ")");
 
                     Socket client = serverSocket.accept();
