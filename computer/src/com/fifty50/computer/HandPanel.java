@@ -127,7 +127,7 @@ public class HandPanel extends JPanel implements Runnable {
             }
         }
         closeGrabber(grabber, CAMERA_ID);
-        System.out.println("Execution terminated");
+        System.out.println("HandPanel terminated");
         isFinished = true;
     }  // end of run()
 
@@ -190,17 +190,18 @@ public class HandPanel extends JPanel implements Runnable {
         Graphics2D g2d = (Graphics2D) g;
 
         //flip the canvas
-        AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
-        tx.translate(-width, 0);
+        AffineTransform tx = AffineTransform.getScaleInstance(1, -1);
+        tx.translate(0, -height);
         g2d.transform(tx);
 
-        //x offset calculations somehow not necessary anymore
-        int x_offset = -x, y_offset = 0;
+        int x_offset = x, y_offset = 0;
 
         //if requested, draw the image that was snapped as well
         if (snapIm != null && !drawCOGOnly) {
-            g2d.setColor(Color.WHITE);
-            g2d.drawImage(snapIm.getBufferedImage(), x_offset, 0, null);
+            try {
+                g2d.setColor(Color.WHITE);
+                g2d.drawImage(snapIm.getBufferedImage(), x_offset, 10, null);
+            } catch (NullPointerException ignored) {}
         }
 
         //paint a triangle pointing to the direction where the car is currently steering to
@@ -208,16 +209,31 @@ public class HandPanel extends JPanel implements Runnable {
 
         //if only the cog should be drawn, skip this section
         if (!drawCOGOnly && gestureDetector != null) {
-            if (gestureDetector.getCurrDirection() == GestureDetector.Direction.RIGHT) { //image flipped!
+
+            //left/right/straight
+            if (frame.getCurrDirection() == Car.Direction.LEFT) {
                 g2d.setColor(Color.RED);
                 g2d.fillPolygon(new int[]{x_offset - 30, x_offset - 10, x_offset - 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
-            } else if (gestureDetector.getCurrDirection() == GestureDetector.Direction.LEFT) {
+            } else if (frame.getCurrDirection() == Car.Direction.RIGHT) {
                 g2d.setColor(Color.RED);
                 g2d.fillPolygon(new int[]{x_offset + width + 30, x_offset + width + 10, x_offset + width + 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
             } else {
                 g2d.setColor(Color.WHITE);
                 g2d.fillPolygon(new int[]{x_offset - 30, x_offset - 10, x_offset - 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
                 g2d.fillPolygon(new int[]{x_offset + width + 30, x_offset + width + 10, x_offset + width + 10}, new int[]{centerVertical, centerVertical - 20, centerVertical + 20}, 3);
+            }
+
+            //forward/backward/brake
+            if (frame.getCurrDrivingMode() == Car.DrivingMode.FORWARD) {
+                g2d.setColor(Color.RED);
+                g2d.fillPolygon(new int[]{x_offset - 30, x_offset - 10, x_offset - 20}, new int[]{centerVertical + 60, centerVertical + 60, centerVertical + 80}, 3);
+            } else if (frame.getCurrDrivingMode() == Car.DrivingMode.BACKWARD) {
+                g2d.setColor(Color.RED);
+                g2d.fillPolygon(new int[]{x_offset - 30, x_offset - 10, x_offset - 20}, new int[]{centerVertical + 50, centerVertical + 50, centerVertical + 30}, 3);
+            } else {
+                g2d.setColor(Color.WHITE);
+                g2d.fillPolygon(new int[]{x_offset - 30, x_offset - 10, x_offset - 20}, new int[]{centerVertical + 60, centerVertical + 60, centerVertical + 80}, 3);
+                g2d.fillPolygon(new int[]{x_offset - 30, x_offset - 10, x_offset - 20}, new int[]{centerVertical + 50, centerVertical + 50, centerVertical + 30}, 3);
             }
 
             //paint a vertical line where the player has set his center point if calibration has been done already
@@ -250,10 +266,10 @@ public class HandPanel extends JPanel implements Runnable {
                 int start = width / 2 - stringLen / 2;
 
                 g2d.setColor(Color.WHITE);
-                g2d.fillRect(-x_offset + start - 5, y_offset + height - 50, stringLen + 5, 50);
+                g2d.fillRect(x_offset + start - 5, y_offset + height - 50, stringLen + 5, 50);
 
                 g2d.setColor(Color.BLUE);
-                g2d.drawString(extraMsg, start - x_offset, y_offset + height - 30);
+                g2d.drawString(extraMsg, start + x_offset, y_offset + height - 30);
             }
         }
     }
@@ -277,7 +293,7 @@ public class HandPanel extends JPanel implements Runnable {
         if (imageCount > 0) {
             String statsMsg = String.format("Snap Avg. Time:  %.1f ms",
                     ((double) totalTime / imageCount));
-            g2d.drawString(statsMsg + ", Contour angle: " + gestureDetector.getSmoothAngle() + "°, " + "Fingers: " + gestureDetector.getFingerCount() + ", " + gestureDetector.getCurrSpeed() + ", " + gestureDetector.getCurrDirection() + "    " + extraMsg, 5, y + height - 30);
+            g2d.drawString(statsMsg + ", Contour angle: " + gestureDetector.getSmoothAngle() + "°, " + "Fingers: " + gestureDetector.getFingerCount() + ", " + gestureDetector.getCurrDrivingMode() + ", " + gestureDetector.getCurrDirection() + "    " + extraMsg, 5, y + height - 30);
             // write statistics in bottom-left corner
         } else  // no image yet
             g2d.drawString("Loading...", 5, y + height - 30);
@@ -317,6 +333,13 @@ public class HandPanel extends JPanel implements Runnable {
         handPanelThread.start();
     }
 
+    public void startHandPanelThread(Thread handPanelThread) {
+        this.handPanelThread = handPanelThread;
+
+        //start it
+        this.handPanelThread.start();
+    }
+
     public void setIsCalibrated(boolean isCalibrated) {
         this.isCalibrated = isCalibrated;
     }
@@ -353,6 +376,10 @@ public class HandPanel extends JPanel implements Runnable {
 
     public BufferedImage getCurrImg() {
         return currImg;
+    }
+
+    public String getExtraMsg() {
+        return extraMsg;
     }
 } // end of HandPanel class
 

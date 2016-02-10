@@ -97,6 +97,7 @@ public class GameHandler implements OnCalibrationFininshedListener {
                         //start the game!
                         isRunning = true;
                         new GameFlow().start();
+                        main.getFinishDetector().start();
                         break;
                 }
 
@@ -125,6 +126,8 @@ public class GameHandler implements OnCalibrationFininshedListener {
     }
 
     public void gameFinished() {
+
+        if (!isRunning) return;
 
         //calculate the score based on the elapsed time
         score = (MAX_TIME_MILLIS - millis) * POINTS_PER_SEC/1000;
@@ -159,7 +162,6 @@ public class GameHandler implements OnCalibrationFininshedListener {
 
         @Override
         public void run() {
-
             showTimer();
         }
 
@@ -242,7 +244,14 @@ public class GameHandler implements OnCalibrationFininshedListener {
                                 new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
                         actionImgScaled = scaleOp.filter(actionImg, actionImgScaled);
 
-                        ImageIO.write(actionImgScaled, "JPEG", new File(main.getPath() + "actionImgs" + File.separator + photoFnm));
+                        BufferedImage actionImgFlipped = new BufferedImage(actionImg.getWidth()/2, actionImg.getHeight()/2, actionImg.getType());
+                        at = new AffineTransform();
+                        at.scale(1, -1);
+                        at.translate(0, -actionImgScaled.getHeight());
+                        AffineTransformOp flipOp = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+                        actionImgFlipped = flipOp.filter(actionImgScaled, actionImgFlipped);
+
+                        ImageIO.write(actionImgFlipped, "JPEG", new File(main.getPath() + File.separator + "actionImgs" + File.separator + photoFnm));
 
                         photoTaken = true;
                     } catch (IOException e) {

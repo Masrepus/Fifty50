@@ -7,8 +7,6 @@ import javax.swing.plaf.basic.BasicInternalFrameUI;
 import java.applet.AppletContext;
 import java.applet.AppletStub;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.net.MalformedURLException;
@@ -39,6 +37,9 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
     private FinishDetector finishDetector;
 
     private volatile Car.PinState fwdFast, fwdSlow, bwdFast, bwdSlow, leftFast, leftSlow, rightFast, rightSlow;
+    private boolean keyboardMode = false;
+    private JOptionPane pane;
+    private JInternalFrame keyboardPopup;
 
     public Main(String[] args) {
         this.args = args;
@@ -158,7 +159,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
     }
 
     public void pause() {
-        //stop everything
+        //stop everything and join the threads for save stopping
         handPanel.closeDown();
         try {
             //wait for the panel to close
@@ -169,25 +170,43 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         detector.close();
         try {
             //wait for the detector to close
-            detector.join();
+            detector.getDetectorThread().join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         viewer.stop();
+        try {
+            //wait for the viewer to close
+            viewer.getStreamerThread().join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        viewer.clearStreamer();
+
         finishDetector.stop();
+        try {
+            //wait for the detector to close
+            finishDetector.getAnalyzerThread().join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         setVisible(false);
     }
 
     public void start() {
 
         //init the GestureDetector and start everything
-        popup.dispose();
+        if (popup != null) popup.dispose();
+        if (keyboardPopup != null) keyboardPopup.dispose();
         detector = new GestureDetector(this, handPanel, handler);
         handPanel.setVisible(true);
         setVisible(true);
-        detector.start();
+
+        //only start the gesture detector if keyboard mode is inactive! Else the detector overrides the commands the keyboard actions send to the car
+        if (!keyboardMode) detector.startThread(new Thread(detector));
+        else detector.disable(new Thread(detector));
+
         viewer.init();
-        finishDetector.start();
 
         //immediately start calibration
         requestCalibration();
@@ -199,21 +218,23 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
     public void restart() {
 
         //restart the hand panel and the other components
-        popup.dispose();
+        if (popup != null) popup.dispose();
         handPanel.setIsCalibrated(false);
-        new Thread(handPanel).start();
+        handPanel.startHandPanelThread(new Thread(handPanel));
         handPanel.setVisible(true);
         finishDetector.start();
 
         setVisible(true);
 
-        new Thread(detector).start();
+        detector.startThread(new Thread(detector));
         viewer.init();
 
         handler.reset();
 
         repaint();
         frame.repaint();
+
+        requestCalibration();
     }
 
     public void connectToServer(String serverName, int port) {
@@ -469,13 +490,99 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
         return path;
     }
 
+    public FinishDetector getFinishDetector() {
+        return finishDetector;
+    }
+
+    public void disableGestureDetector() {
+        detector.close();
+
+        //disable it every round until this is changed
+        keyboardMode = true;
+    }
+
+    public void enableGestureDetector() {
+        //start gesture detector next round
+        keyboardMode = false;
+    }
+
+    public void notifyKeyboardModeActive() {
+        if (keyboardPopup != null) keyboardPopup.dispose();
+
+        //now show an updated popup with keyboard mode active
+        showKeyboardPopup("Tastaturmodus");
+    }
+
+    public void showKeyboardPopup(String message) {
+
+        //wait until frame is shown
+        while (!frame.isVisible()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ignored) {}
+        }
+
+        if (pane == null) pane = new JOptionPane("", JOptionPane.PLAIN_MESSAGE,
+                JOptionPane.DEFAULT_OPTION, null, null, null);
+
+        //if there is already an old popup, dispose it
+        if (keyboardPopup != null) keyboardPopup.dispose();
+
+        keyboardPopup = pane.createInternalFrame(Main.this, "");
+        ((BasicInternalFrameUI) keyboardPopup.getUI()).setNorthPane(null);
+        keyboardPopup.setBackground(Color.BLACK);
+
+        //set up the label that will display the message
+        JLabel label = new JLabel(message, JLabel.CENTER);
+        label.setForeground(Color.WHITE);
+        label.setBackground(Color.BLACK);
+        label.setOpaque(true);
+
+        Rectangle2D stringBounds = label.getFontMetrics(label.getFont()).getStringBounds(message, null);
+        int stringLen = (int) stringBounds.getWidth();
+        int stringHeight = (int) stringBounds.getHeight();
+
+        keyboardPopup.getRootPane().removeAll();
+        keyboardPopup.getRootPane().add(label);
+        //center the label
+        label.setBounds(17, (50-stringHeight)/2, stringLen, stringHeight);
+
+        //bottom left corner
+        keyboardPopup.setBounds(20, height - 70, stringLen + 40, 50);
+        label.setVisible(true);
+        keyboardPopup.setVisible(true);
+    }
+
+    public Car.Direction getCurrDirection() {
+
+        //check pin states in order to find out what the current direction is
+        Car.Direction currDirection;
+
+        if (leftFast == Car.PinState.HIGH || leftSlow == Car.PinState.HIGH) currDirection = Car.Direction.LEFT;
+        else if (rightFast == Car.PinState.HIGH || rightSlow == Car.PinState.HIGH) currDirection = Car.Direction.RIGHT;
+        else currDirection = Car.Direction.STRAIGHT;
+
+        return currDirection;
+    }
+
+    public Car.DrivingMode getCurrDrivingMode() {
+
+        //check pin states in order to find out the current driving mode
+        Car.DrivingMode currDrivingMode;
+
+        if (fwdFast == Car.PinState.HIGH || fwdSlow == Car.PinState.HIGH) currDrivingMode = Car.DrivingMode.FORWARD;
+        else if (bwdFast == Car.PinState.HIGH || bwdSlow == Car.PinState.HIGH) currDrivingMode = Car.DrivingMode.BACKWARD;
+        else currDrivingMode = Car.DrivingMode.BRAKE;
+
+        return currDrivingMode;
+    }
+
     private class Connector extends Thread {
 
         private String serverName;
         private int port;
         private boolean connected;
         private Socket client;
-        private JOptionPane pane;
 
         public Connector(String serverName, int port) {
             this.serverName = serverName;
@@ -502,7 +609,7 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
                     connected = true;
 
                     //show a "connected" internal frame popup
-                    showPopup();
+                    showPopup("Verbunden mit Auto: " + client.getRemoteSocketAddress());
                 } catch (IOException e) {
                     System.out.println("Verbindung fehlgeschlagen, warte...");
                     try {
@@ -518,7 +625,11 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
             return connected;
         }
 
-        public void showPopup() {
+        public Socket getClient() {
+            return client;
+        }
+
+        public void showPopup(String message) {
 
             //wait until frame is shown
             while (!frame.isVisible()) {
@@ -536,8 +647,6 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
             popup = pane.createInternalFrame(Main.this, "");
             ((BasicInternalFrameUI) popup.getUI()).setNorthPane(null);
             popup.setBackground(Color.BLACK);
-
-            String message = "Verbunden mit Auto: " + client.getRemoteSocketAddress();
 
             //set up the label that will display the message
             JLabel label = new JLabel(message, JLabel.CENTER);
@@ -586,6 +695,8 @@ public class Main extends JPanel implements OnCalibrationFininshedListener, Runn
                     else if (message.contains("left slow")) leftSlow = Car.PinState.parse(message.split("\\s+")[2]);
                     else if (message.contains("right fast")) rightFast = Car.PinState.parse(message.split("\\s+")[2]);
                     else if (message.contains("right slow")) rightSlow = Car.PinState.parse(message.split("\\s+")[2]);
+
+                    System.out.println("Nachricht vom Auto: " + message);
 
                 } catch (Exception ignored) {}
             }

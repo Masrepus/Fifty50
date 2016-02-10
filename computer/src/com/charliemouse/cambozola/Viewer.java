@@ -478,7 +478,6 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
     {
         if (m_imgStream != null) {
             m_imgStream.unhook();
-            m_imgStream = null;
         }
         m_readingStream = false;
         for (Enumeration e = m_accessories.elements(); e.hasMoreElements();) {
@@ -937,6 +936,14 @@ public class Viewer extends java.applet.Applet implements MouseListener, MouseMo
     }
 
     public Image getImage() {
-        return m_imgStream.getCurrent();
+        return (m_imgStream == null) ? null : m_imgStream.getCurrent();
+    }
+
+    public CamStream getStreamerThread() {
+        return m_imgStream;
+    }
+
+    public void clearStreamer() {
+        m_imgStream = null;
     }
 }

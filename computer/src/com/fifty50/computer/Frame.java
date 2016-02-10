@@ -21,12 +21,22 @@ public class Frame extends JFrame {
     public static final String BRAKE = "brake";
     public static final String STRAIGHT = "straight";
     public static final String FINISH = "finish";
+    private static final String TOGGLE_KEYBOARD_MODE = "keyboard";
     private int width, height;
     private String[] args;
     private Starter starter;
     private Main main;
     private GameOver gameOver;
     private boolean gameHasRun;
+    private boolean keyboardActive = false;
+
+    public Car.Direction getCurrDirection() {
+        return main.getCurrDirection();
+    }
+
+    public Car.DrivingMode getCurrDrivingMode() {
+        return main.getCurrDrivingMode();
+    }
 
     public enum Mode {STARTSCREEN, GAME, GAMEOVER}
 
@@ -129,6 +139,10 @@ public class Frame extends JFrame {
         //finish game
         input.put(KeyStroke.getKeyStroke('f'), FINISH);
         action.put(FINISH, new FinishAction());
+
+        //activate keyboard control mode
+        input.put(KeyStroke.getKeyStroke('k'), TOGGLE_KEYBOARD_MODE);
+        action.put(TOGGLE_KEYBOARD_MODE, new ToggleKeyboardModeAction());
     }
 
     public void switchMode(Mode mode) {
@@ -167,12 +181,25 @@ public class Frame extends JFrame {
     @Override
     public void paint(Graphics g) {
         super.paint(g);
-
-        //paint game handler images on top if required
     }
 
     public boolean hasGameRun() {
         return gameHasRun;
+    }
+
+    private class ToggleKeyboardModeAction extends AbstractAction {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (keyboardActive) {
+                main.disableGestureDetector();
+                keyboardActive = false;
+            }
+            else {
+                main.enableGestureDetector();
+                keyboardActive = true;
+            }
+        }
     }
 
     private class ForwardAction extends AbstractAction {

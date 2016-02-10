@@ -11,4 +11,8 @@ public class Car {
     }
 
     public enum Speed {SLOW, FAST}
+
+    public enum Direction {LEFT, RIGHT, STRAIGHT}
+
+    public enum DrivingMode {FORWARD, BACKWARD, BRAKE}
 }

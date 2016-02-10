@@ -26,16 +26,18 @@ public class GestureDetector extends Thread {
     private volatile Point center;
     private int brakeZoneHeight;
 
-    private Direction currDirection = Direction.STRAIGHT;
-    private Direction lastSentCommand = Direction.STRAIGHT;
+    private Car.Direction currDirection = Car.Direction.STRAIGHT;
+    private Car.Direction lastSentCommand = Car.Direction.STRAIGHT;
 
-    private Speed currSpeed = Speed.BRAKE;
-    private Speed lastSentSpeed = Speed.BRAKE;
+    private Car.DrivingMode currDrivingMode = Car.DrivingMode.BRAKE;
+    private Car.DrivingMode lastSentDrivingMode = Car.DrivingMode.BRAKE;
 
     final ArrayList<Point> pointsCache = new ArrayList<Point>();
     private ArrayList<OnCalibrationFininshedListener> listeners = new ArrayList<OnCalibrationFininshedListener>();
 
-    private boolean isRunning;
+    private boolean isRunning, keyboardMode;
+
+    private Thread detectorThread;
 
 
     public GestureDetector(Main main, HandPanel panel, GameHandler handler) {
@@ -53,32 +55,33 @@ public class GestureDetector extends Thread {
     @Override
     public void run() {
 
-        isRunning = true;
-
         while (isRunning) {
 
             //only start sending commands after calibration
             if (center != null) {
                 try {
-                    handPosition = detector.getCogPoint();
+                    handPosition = detector.getCogFlipped();
                     smoothFingers = detector.getFingerTips().size();
 
                     //accelerate if there are fingers being shown and the hand is not below the horizontal line, else brake
-                    if (smoothFingers == 0 || handPosition.y > center.y + 10) {
-                        currSpeed = Speed.BRAKE;
-                    } else currSpeed = Speed.ACCELERATE;
-
+                    if (smoothFingers == 0) {
+                        currDrivingMode = Car.DrivingMode.BRAKE;
+                    } else if (handPosition.y > center.y + 10) {
+                        //go backwards if the hand is below the horizontal line and either left or right from the brake zone, else brake
+                        if (handPosition.getX() > (center.getX() + CENTER_THRESHOLD) || handPosition.getX() < (center.getX() - CENTER_THRESHOLD)) currDrivingMode = Car.DrivingMode.BACKWARD;
+                        else currDrivingMode = Car.DrivingMode.BRAKE;
+                    } else currDrivingMode = Car.DrivingMode.FORWARD;
 
                     //check the angle
                     smoothAngle = angleMovingAverage(detector.getContourAxisAngle());
 
                     //steer to the left or to the right if the hand is pointing either left or right and it is right/left of the center of the player
 
-                    if (smoothAngle > -20 && smoothAngle < 80 && handPosition.getX() > (center.getX() + CENTER_THRESHOLD) && currSpeed != Speed.BRAKE) {
-                        currDirection = Direction.LEFT;
-                    } else if (smoothAngle > 100 && smoothAngle < 200 && handPosition.getX() < (center.getX() - CENTER_THRESHOLD) && currSpeed != Speed.BRAKE) {
-                        currDirection = Direction.RIGHT;
-                    } else currDirection = Direction.STRAIGHT;
+                    if (handPosition.getX() > (center.getX() + CENTER_THRESHOLD) && currDrivingMode != Car.DrivingMode.BRAKE) {
+                        currDirection = Car.Direction.RIGHT;
+                    } else if (handPosition.getX() < (center.getX() - CENTER_THRESHOLD) && currDrivingMode != Car.DrivingMode.BRAKE) {
+                        currDirection = Car.Direction.LEFT;
+                    } else currDirection = Car.Direction.STRAIGHT;
 
                     //now send the current direction to the car, if it isn't the same as last time
                         switch (currDirection) {
@@ -95,10 +98,13 @@ public class GestureDetector extends Thread {
                         }
 
                     //now send the current speed mode
-                        switch (currSpeed) {
+                        switch (currDrivingMode) {
 
-                            case ACCELERATE:
+                            case FORWARD:
                                 main.forward(Car.Speed.FAST);
+                                break;
+                            case BACKWARD:
+                                main.backward(Car.Speed.FAST);
                                 break;
                             case BRAKE:
                                 main.brake();
@@ -108,6 +114,9 @@ public class GestureDetector extends Thread {
                 }
             }
         }
+
+        System.out.println("Gesture detector terminated");
+        if (keyboardMode) main.notifyKeyboardModeActive();
     }
 
     public int angleMovingAverage(int angle) {
@@ -118,12 +127,12 @@ public class GestureDetector extends Thread {
         return smoothAngle;
     }
 
-    public Direction getCurrDirection() {
+    public Car.Direction getCurrDirection() {
         return currDirection;
     }
 
-    public Speed getCurrSpeed() {
-        return currSpeed;
+    public Car.DrivingMode getCurrDrivingMode() {
+        return currDrivingMode;
     }
 
     public Point getCenter() {
@@ -150,6 +159,27 @@ public class GestureDetector extends Thread {
         center = null;
     }
 
+    public void startThread(Thread detectorThread) {
+        this.detectorThread = detectorThread;
+        isRunning = true;
+        keyboardMode = false;
+
+        //start it
+        this.detectorThread.start();
+    }
+
+    public Thread getDetectorThread() {
+        return detectorThread;
+    }
+
+    public void disable(Thread dummyThread) {
+        //set detectorThread to dummyThread and let it finish. Like that there won't be any exceptions when close() is called
+        detectorThread = dummyThread;
+        isRunning = false;
+        keyboardMode = true;
+        detectorThread.start();
+    }
+
     private class Calibrator extends Thread {
 
         @Override
@@ -164,8 +194,7 @@ public class GestureDetector extends Thread {
                     if (count[0] < 6) {
                         count[0]++;
                         pointsCache.add(detector.getCogPoint());
-                    }
-                    else {
+                    } else {
                         pointsCache.add(detector.getCogPoint());
                         timer.cancel();
 
@@ -179,7 +208,7 @@ public class GestureDetector extends Thread {
                         averageX = totalX / pointsCache.size();
                         averageY = totalY / pointsCache.size();
 
-                        center = new Point((int)averageX, (int)averageY);
+                        center = new Point((int) averageX, (int) averageY);
 
                         //notify the registered listeners
                         for (OnCalibrationFininshedListener listener : listeners) {
@@ -191,6 +220,4 @@ public class GestureDetector extends Thread {
         }
     }
 
-    public enum Direction {LEFT, RIGHT, STRAIGHT}
-    public enum Speed {ACCELERATE, BRAKE}
 }

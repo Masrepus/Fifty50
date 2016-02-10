@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Timer;
 
 /**
  * Created by samuel on 10.10.15.
@@ -17,6 +18,7 @@ import java.io.IOException;
 public class FinishDetector {
 
     private static final int MIN_BOX_SIZE = 40000;
+    private int minBoxSizeCalibrated = MIN_BOX_SIZE;
     // default HSV initial slider ranges
     private static final int HUE_LOWER = 0;
     private static final int HUE_UPPER = 179;
@@ -30,10 +32,12 @@ public class FinishDetector {
     private ColorRectDetector detector;
     private int width, height;
     private Viewer carCam;
-    private boolean isRunning;
+    private volatile boolean isRunning;
     private int hueLower, hueUpper, satLower, satUpper, briLower, briUpper;
 
     private Main main;
+
+    private Thread analyzerThread;
 
     public FinishDetector(Main main, Viewer carCam, int width, int height, String hsvPath) {
         this.width = width;
@@ -52,11 +56,16 @@ public class FinishDetector {
 
     public void start() {
         isRunning = true;
-        new Analyzer().start();
+        analyzerThread = new Analyzer();
+        analyzerThread.start();
     }
 
     public void stop() {
         isRunning = false;
+    }
+
+    public Thread getAnalyzerThread() {
+        return analyzerThread;
     }
 
     private void readHSVRanges(String fnm)
@@ -118,13 +127,7 @@ public class FinishDetector {
                 //wait until the viewer has images
                 if (img == null) continue;
 
-                //convert the image to buffered image and then to iplimage
-                /*BufferedImage bufferedImage = new BufferedImage(640, 480,
-                        BufferedImage.TYPE_INT_ARGB);
-
-                Graphics g = bufferedImage.createGraphics();
-                g.drawImage(img, 0, 0, null);
-                g.dispose();*/
+                //convert the image to buffered image and then to iplimage (image is instance of ToolkitImage)
                 opencv_core.IplImage image = opencv_core.IplImage.createFrom(((ToolkitImage) img).getBufferedImage());
 
                 //now pass this image to the rect detector
@@ -135,7 +138,7 @@ public class FinishDetector {
                     //check if the found rectangle meets the minimum size
                     Rectangle bounds = detector.getBoundedBox().getBounds();
 
-                    if (bounds.width * bounds.height >= MIN_BOX_SIZE) {
+                    if (bounds.width * bounds.height >= minBoxSizeCalibrated) {
                         System.out.println("Finish sign found: " + bounds.width + "x" + bounds.height + ", finishing game...");
                         main.getHandler().gameFinished();
                         break;
@@ -143,9 +146,12 @@ public class FinishDetector {
                 }
 
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(500);
                 } catch (InterruptedException ignored) {}
             }
+
+            System.out.println("Finish detector terminated");
         }
     }
+
 }
